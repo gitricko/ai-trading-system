@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main, prompt0]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pytest
+      - if: ${{ hashFiles('tests/**') != '' }}
+        run: pytest tests/
+      - if: ${{ hashFiles('tests/**') == '' }}
+        run: echo "no tests yet — expected during pre-backtester prompts; will gate once src/ has code"
+
+  dashboard:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -c "from pathlib import Path; from dashboard.build import build; build(Path('ci-dashboard.html'))"
+      - run: test -s ci-dashboard.html

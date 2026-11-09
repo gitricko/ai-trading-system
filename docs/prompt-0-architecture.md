@@ -12,11 +12,11 @@ These are the lines to change for a different market. Every prompt reads them fr
 - Bar size: daily. A "day" in these rules means one bar, so with hourly bars the 200-day line is the 200-bar line.
 - Data: from 2020-07-01 through 2026-10-23, from Yahoo Finance through the yfinance library, adjusted for splits and dividends. yfinance treats the end date as exclusive, so pass the day after.
 - Training: 2022-01-03 to 2024-12-31. Locked test: 2025-01-02 to 2026-10-23.
-- Study tickers: SPY QQQ IWM DIA XLK XLF XLE XLV XLI XLY XLP XLU XLB XLC XLRE TLT IEF SHY BIL GLD SLV USO DBC BTC-USD.
+- Study tickers: SPY QQQ IWM DIA XLK XLF XLE XLV XLI XLY XLP XLU XLB XLC XLRE TLT IEF SHY SGOV GLD SLV USO DBC TQQQ SQQQ BTC-USD.
 - Market ticker: SPY. Its uptrend and downtrend days stand for the whole market.
 - Engine candidates: SPY QQQ IWM DIA.
-- Safe candidates: BIL SHY IEF TLT GLD.
-- Cash ticker: BIL. Idle money sits in it, and every safe candidate has to beat it.
+- Safe candidates: SGOV SHY IEF TLT GLD.
+- Cash ticker: SGOV. Idle money sits in it, and every safe candidate has to beat it.
 - Studied but never traded: BTC-USD.
 - Sleeve tickers: every study ticker except the cash ticker and the ones never traded.
 - Cost: 0.05% of the traded value on every buy and every sell.
