@@ -47,12 +47,13 @@ table.settings th, table.settings td {
   text-align: left; padding: 7px 12px; border-bottom: 1px solid rgba(15, 118, 110, 0.25);
 }
 table.settings th { color: var(--teal); font-weight: 650; white-space: nowrap; }
-table.asset-table { font-size: 0.85rem; }
-table.asset-table td, table.asset-table th { white-space: nowrap; }
-table.asset-table td.grp {
+table.asset-table { font-size: 0.82rem; width: auto; max-width: 100%; }
+table.asset-table td, table.asset-table th { white-space: nowrap; padding: 5px 9px; }
+table.asset-table tr:nth-child(even):not(.grp) td { background: rgba(30, 58, 95, 0.035); }table.asset-table td.grp {
   background: rgba(30, 58, 95, 0.06); font-weight: 650; color: var(--navy);
-  padding-top: 10px; padding-bottom: 6px;
+  padding-top: 9px; padding-bottom: 5px;
 }
+section.panel:has(#asset-table) { padding: 18px 18px; }
 .accent-teal { color: var(--teal); font-weight: 650; }
 .accent-bronze { color: var(--bronze); font-weight: 650; }
 footer.colophon { font-size: 0.8rem; color: rgba(17, 17, 17, 0.55); text-align: center; }
@@ -138,9 +139,9 @@ body.presenting #stage { display: block; }
   var order = Object.keys(GROUPS);
   var html = '<table class="settings asset-table"><thead><tr>'
     + '<th>Asset</th><th>Labels</th><th>Ret/yr</th><th>Vol</th><th>Max DD</th><th>Up days</th>'
-    + '<th>Trend gap</th><th>Ret when mkt falls</th><th>Corr mkt</th><th>Calm&#8594; wild move</th>'
-    + '<th>Keeps going (exc./n)</th><th>Snaps back (exc./n)</th><th>Snaps below (exc./n)</th>'
-    + '<th>Holds up</th><th>Line</th></tr></thead><tbody>';
+    + '<th>Trend gap</th><th>Mkt down</th><th>Corr</th><th>Calm&#8594;wild</th>'
+    + '<th>KG exc/n</th><th>SB exc/n</th><th>SB&#8242; exc/n</th>'
+    + '<th>Holds</th><th>Line</th></tr></thead><tbody>';
   order.forEach(function (g) {
     html += '<tr><td colspan="15" class="grp">' + g + '</td></tr>';
     GROUPS[g].forEach(function (t) {
@@ -165,6 +166,8 @@ body.presenting #stage { display: block; }
     });
   });
   html += '</tbody></table>';
+  html += '<p style="margin:6px 0 0;font-size:.75rem;color:rgba(17,17,17,.5)" class="legend">';
+  html += 'KG = keeps going, SB = snaps back, SB&rsquo; = snaps back below the line, exc = excess return vs all windows, n = events, Mkt down = return on market&rsquo;s downtrend days, Up days = share of days above the 200-day line</p>';
   document.getElementById("asset-table").innerHTML = html;
 
   // ---- correlation heat map (proper 2D matrix) ----

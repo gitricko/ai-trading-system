@@ -23,9 +23,9 @@
   var order = Object.keys(GROUPS);
   var html = '<table class="settings asset-table"><thead><tr>'
     + '<th>Asset</th><th>Labels</th><th>Ret/yr</th><th>Vol</th><th>Max DD</th><th>Up days</th>'
-    + '<th>Trend gap</th><th>Ret when mkt falls</th><th>Corr mkt</th><th>Calm&#8594; wild move</th>'
-    + '<th>Keeps going (exc./n)</th><th>Snaps back (exc./n)</th><th>Snaps below (exc./n)</th>'
-    + '<th>Holds up</th><th>Line</th></tr></thead><tbody>';
+    + '<th>Trend gap</th><th>Mkt down</th><th>Corr</th><th>Calm&#8594;wild</th>'
+    + '<th>KG exc/n</th><th>SB exc/n</th><th>SB&#8242; exc/n</th>'
+    + '<th>Holds</th><th>Line</th></tr></thead><tbody>';
   order.forEach(function (g) {
     html += '<tr><td colspan="15" class="grp">' + g + '</td></tr>';
     GROUPS[g].forEach(function (t) {
@@ -50,6 +50,8 @@
     });
   });
   html += '</tbody></table>';
+  html += '<p style="margin:6px 0 0;font-size:.75rem;color:rgba(17,17,17,.5)" class="legend">';
+  html += 'KG = keeps going, SB = snaps back, SB&rsquo; = snaps back below the line, exc = excess return vs all windows, n = events, Mkt down = return on market&rsquo;s downtrend days, Up days = share of days above the 200-day line</p>';
   document.getElementById("asset-table").innerHTML = html;
 
   // ---- correlation heat map (proper 2D matrix) ----
