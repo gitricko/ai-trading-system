@@ -104,12 +104,13 @@ table.settings th, table.settings td {
   text-align: left; padding: 7px 12px; border-bottom: 1px solid rgba(15, 118, 110, 0.25);
 }
 table.settings th { color: var(--teal); font-weight: 650; white-space: nowrap; }
-table.asset-table { font-size: 0.85rem; }
-table.asset-table td, table.asset-table th { white-space: nowrap; }
-table.asset-table td.grp {
+table.asset-table { font-size: 0.82rem; width: auto; max-width: 100%; }
+table.asset-table td, table.asset-table th { white-space: nowrap; padding: 5px 9px; }
+table.asset-table tr:nth-child(even):not(.grp) td { background: rgba(30, 58, 95, 0.035); }table.asset-table td.grp {
   background: rgba(30, 58, 95, 0.06); font-weight: 650; color: var(--navy);
-  padding-top: 10px; padding-bottom: 6px;
+  padding-top: 9px; padding-bottom: 5px;
 }
+section.panel:has(#asset-table) { padding: 18px 18px; }
 .accent-teal { color: var(--teal); font-weight: 650; }
 .accent-bronze { color: var(--bronze); font-weight: 650; }
 footer.colophon { font-size: 0.8rem; color: rgba(17, 17, 17, 0.55); text-align: center; }
