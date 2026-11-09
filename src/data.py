@@ -22,15 +22,37 @@ DATA_PARQUET = PROJECT_ROOT / "data" / "prices.parquet"
 
 # --- settings (from CLAUDE.md, "My settings") ---
 START_DATE = "2020-07-01"
-END_DATE = "2026-10-23"          # inclusive
+END_DATE = "2026-10-23"  # inclusive
 # yfinance treats the end date as exclusive, so pass the day after:
 _DOWNLOAD_END = "2026-10-24"
 
 STUDY_TICKERS = [
-    "SPY", "QQQ", "IWM", "DIA",
-    "XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLC", "XLRE",
-    "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV", "USO", "DBC",
-    "TQQQ", "SQQQ", "BTC-USD",
+    "SPY",
+    "QQQ",
+    "IWM",
+    "DIA",
+    "XLK",
+    "XLF",
+    "XLE",
+    "XLV",
+    "XLI",
+    "XLY",
+    "XLP",
+    "XLU",
+    "XLB",
+    "XLC",
+    "XLRE",
+    "TLT",
+    "IEF",
+    "SHY",
+    "SGOV",
+    "GLD",
+    "SLV",
+    "USO",
+    "DBC",
+    "TQQQ",
+    "SQQQ",
+    "BTC-USD",
 ]
 
 TRAIN_WINDOW = ("2022-01-03", "2024-12-31")
@@ -38,7 +60,7 @@ LOCKED_TEST_WINDOW = ("2025-01-02", "2026-10-23")
 
 MARKET_TICKER = "SPY"
 CASH_TICKER = "SGOV"
-LINE_LENGTH = 200                # the 200-day line
+LINE_LENGTH = 200  # the 200-day line
 
 
 def ensure_data(tickers: list[str] | None = None) -> pd.DataFrame:
@@ -61,15 +83,22 @@ def ensure_data(tickers: list[str] | None = None) -> pd.DataFrame:
         for i, t in enumerate(missing):
             close = None
             for attempt in range(3):
-                df = yf.download(t, start=START_DATE, end=_DOWNLOAD_END,
-                                 auto_adjust=True, progress=False)
+                df = yf.download(
+                    t,
+                    start=START_DATE,
+                    end=_DOWNLOAD_END,
+                    auto_adjust=True,
+                    progress=False,
+                )
                 if df is not None and not df.empty:
                     if isinstance(df.columns, pd.MultiIndex):
                         s = df["Close"][t]
                     else:
                         s = df["Close"]
                     s = s.dropna()
-                    s.index = s.index.tz_localize(None) if s.index.tz is not None else s.index
+                    s.index = (
+                        s.index.tz_localize(None) if s.index.tz is not None else s.index
+                    )
                     close = s
                     break
                 time.sleep(1.0)
@@ -106,13 +135,19 @@ def report(close: pd.Series, market_close: pd.Series | None = None) -> None:
         return
     first, last = close.index[0], close.index[-1]
     if market_close is not None:
-        market_days = set(market_close.loc[close.index[0]: close.index[-1]].index)
+        market_days = set(market_close.loc[close.index[0] : close.index[-1]].index)
         missing_days = sorted(market_days - set(close.index))
     else:
         missing_days = []
-    print(f"{close.name if close.name else '?':>8}: rows={len(close):5d}  "
-          f"first={first.date()}  last={last.date()}  missing_days={len(missing_days)}"
-          + (f"  {missing_days[:10]}{' ...' if len(missing_days) > 10 else ''}" if missing_days else ""))
+    print(
+        f"{close.name if close.name else '?':>8}: rows={len(close):5d}  "
+        f"first={first.date()}  last={last.date()}  missing_days={len(missing_days)}"
+        + (
+            f"  {missing_days[:10]}{' ...' if len(missing_days) > 10 else ''}"
+            if missing_days
+            else ""
+        )
+    )
 
 
 def load_all(tickers: list[str] | None = None) -> dict[str, pd.Series]:
