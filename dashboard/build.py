@@ -266,7 +266,8 @@ JS = """
 """
 
 
-def build() -> Path:
+def build(output: Path | None = None) -> Path:
+    out_path = output if output is not None else OUT
     sections = sorted(SECTIONS_DIR.glob("*.html"), key=lambda p: p.name)
     if not sections:
         raise SystemExit(f"no sections found in {SECTIONS_DIR}")
@@ -324,12 +325,12 @@ def build() -> Path:
 </body>
 </html>
 """
-    OUT.write_text(doc, encoding="utf-8")
+    out_path.write_text(doc, encoding="utf-8")
     print(
-        f"built {OUT} from {len(sections)} section(s): "
+        f"built {out_path} from {len(sections)} section(s): "
         + ", ".join(p.name for p in sections)
     )
-    return OUT
+    return out_path
 
 
 if __name__ == "__main__":
