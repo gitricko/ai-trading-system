@@ -113,6 +113,37 @@ table.asset-table tr:nth-child(even):not(.grp) td { background: rgba(30, 58, 95,
 section.panel:has(#asset-table) { padding: 18px 18px; }
 .accent-teal { color: var(--teal); font-weight: 650; }
 .accent-bronze { color: var(--bronze); font-weight: 650; }
+
+/* tooltips: hover target shows a dark, readable pop-up (pure CSS, works on file://) */
+[data-tip] { position: relative; cursor: help; }
+[data-tip]::after {
+  display: none; position: absolute; left: 0; top: calc(100% + 5px);
+  z-index: 41; width: 18ch; padding: 8px 11px; line-height: 1.4;
+  background: var(--navy); color: #f4f8f8; font-size: 0.8rem; font-weight: 400;
+  border-radius: 6px; box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+  white-space: normal; text-align: left; content: attr(data-tip);
+}
+[data-tip]::before {
+  display: none; position: absolute; left: 12px; top: calc(100% - 3px); z-index: 41;
+  border: 5px solid transparent; border-bottom-color: var(--navy); content: "";
+}
+[data-tip]:hover::after, [data-tip]:hover::before { display: block; }
+table.asset-table th[data-tip]::after { width: 16ch; text-align: left; }
+
+/* the little round “line” icon in the asset table (pop-up goes up & to the left) */
+.line-ico { display: inline-block; width: 16px; height: 16px; line-height: 12.5px;
+  border: 1.5px solid var(--teal); border-radius: 50%; font-size: 10px;
+  color: var(--teal); font-weight: 700; cursor: help; }
+.line-ico:hover { background: var(--teal); color: #fff; }
+.line-ico::after { left: auto; right: 20px; top: auto; bottom: calc(100% + 5px);
+  width: 30ch; text-align: left; }
+.line-ico::before { left: auto; right: 9px; top: auto; bottom: calc(100% + 3px);
+  border-bottom-color: transparent; border-top-color: var(--navy); }
+
+/* tooltip placement helpers (JS may add tip-above so pop-ups stay on screen) */
+[data-tip].tip-above::after { top: auto; bottom: calc(100% + 5px); }
+[data-tip].tip-above::before { top: auto; bottom: calc(100% + 3px);
+  border-bottom-color: transparent; border-top-color: var(--navy); }
 footer.colophon { font-size: 0.8rem; color: rgba(17, 17, 17, 0.55); text-align: center; }
 
 /* presenter tools */

@@ -21,11 +21,29 @@
       + c + ';border-radius:10px;font-size:.72rem;color:' + c + ';white-space:nowrap">' + txt + '</span>';
   }
   var order = Object.keys(GROUPS);
-  var html = '<table class="settings asset-table"><thead><tr>'
-    + '<th>Asset</th><th>Labels</th><th>Ret/yr</th><th>Vol</th><th>Max DD</th><th>Up days</th>'
-    + '<th>Trend gap</th><th>Mkt down</th><th>Corr</th><th>Calm&#8594;wild</th>'
-    + '<th>KG exc/n</th><th>SB exc/n</th><th>SB&#8242; exc/n</th>'
-    + '<th>Holds</th><th>Line</th></tr></thead><tbody>';
+  var HEADS = [
+    "Asset", "Labels",
+    ["Ret/yr", "annualized return over the training window"],
+    ["Vol", "annualized volatility (std-dev of daily returns)"],
+    ["Max DD", "max drawdown, biggest peak-to-trough fall"],
+    ["Up days", "share of days the close is above its 200-day line"],
+    ["Trend gap", "annualized return on uptrend days minus annualized return on downtrend days"],
+    ["Mkt down", "annualized return on the market (SPY) downtrend days"],
+    ["Corr", "daily-return correlation with SPY"],
+    ["Calm\u2192wild", "average daily move size on calm days, and on wild days"],
+    ["KG exc/n", "KEEPS GOING: excess 20-day return vs all 20-day windows / event count (needs \u22656, +20 pts)"],
+    ["SB exc/n", "SNAPS BACK: excess 5-day return vs all 5-day windows / event count (needs \u226512, +5 pts)"],
+    ["SB\u2032 exc/n", "SNAPS BACK measured below the 200-day line instead of above it; same 5-day test / events"],
+    ["Holds", "HOLDS UP: beats SGOV cash on market down days AND correlation with SPY below 0.5"],
+    "Line"
+  ];
+  var html = '<table class="settings asset-table"><thead><tr>';
+  HEADS.forEach(function (h) {
+    var label = Array.isArray(h) ? h[0] : h, tip = Array.isArray(h) ? h[1] : null;
+    html += tip ? '<th data-tip="' + tip.replace(/"/g,"&quot;") + '">' + label + '</th>'
+                : '<th>' + label + '</th>';
+  });
+  html += '</tr></thead><tbody>';
   order.forEach(function (g) {
     html += '<tr><td colspan="15" class="grp">' + g + '</td></tr>';
     GROUPS[g].forEach(function (t) {
@@ -45,11 +63,16 @@
         + '<td>' + num(r.snaps_back_excess, 3) + ' / ' + r.snaps_back_events + '</td>'
         + '<td>' + num(r.snaps_back_below_line_excess, 3) + ' / ' + r.snaps_back_below_line_events + '</td>'
         + '<td>' + (r.holds_up ? '<span class="accent-teal">yes</span>' : '<span style="opacity:.4">no</span>') + '</td>'
-        + '<td style="white-space:normal;max-width:280px;font-size:.8rem;color:rgba(17,17,17,.7)">' + r.plain + '</td>'
+        + '<td><span class="line-ico" data-tip="' + r.plain.replace(/"/g, "&quot;").replace(/</g,"&lt;") + '">i</span></td>'
         + '</tr>';
     });
   });
   html += '</tbody></table>';
+
+  // keep tooltips on screen: pop upward for anything near the bottom of the page
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tip]'), function (el) {
+    if (el.getBoundingClientRect().bottom > window.innerHeight - 90) el.classList.add('tip-above');
+  });
   html += '<p style="margin:6px 0 0;font-size:.75rem;color:rgba(17,17,17,.5)" class="legend">';
   html += 'KG = keeps going, SB = snaps back, SB&rsquo; = snaps back below the line, exc = excess return vs all windows, n = events, Mkt down = return on market&rsquo;s downtrend days, Up days = share of days above the 200-day line</p>';
   document.getElementById("asset-table").innerHTML = html;
