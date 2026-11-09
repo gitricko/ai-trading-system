@@ -17,6 +17,7 @@ SECTIONS_DIR = HERE / "sections"
 OUT = HERE / "index.html"
 ROOT = HERE.parent
 STUDY_JSON = ROOT / "results" / "asset_study.json"
+SPY_LINE_JSON = ROOT / "results" / "spy_line.json"
 
 GROUPS_JSON = {
     "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
@@ -329,6 +330,11 @@ def build(output: Path | None = None) -> Path:
             body = body.replace("{{ASSET_GROUPS}}", json.dumps(GROUPS_JSON))
         if "{{CORRELATIONS}}" in body:
             body = body.replace("{{CORRELATIONS}}", json.dumps(corr))
+        if "{{SPY_LINE}}" in body and SPY_LINE_JSON.exists():
+            body = body.replace(
+                "{{SPY_LINE}}",
+                SPY_LINE_JSON.read_text(encoding="utf-8").strip(),
+            )
         if "Plotly.newPlot" in body:
             needs_plotly = True
         parts.append(

@@ -210,17 +210,29 @@ def main() -> None:
         {t: closes[t].pct_change().loc[W0:W1] for t in D.STUDY_TICKERS}
     ).corr()
     full_corr.to_csv(out / "correlations.csv")
-    (out / "asset_study.json").write_text(
-        json.dumps(
-            {
-                "rows": rows,
-                "correlations": full_corr.to_dict(),
-                "training_window": [str(W0.date()), str(W1.date())],
-            },
-            indent=1,
+
+    # daily SPY series for the dashboard "SPY and its 200-day line" section:
+    # warm-up from the start of the data (the line needs 200 bars), then the
+    # training window. Uptrend day = close at or above its 200-day line.
+    spy = market
+    spy_line = spy.rolling(LINE, min_periods=LINE).mean()
+    up_mask = (spy >= spy_line).fillna(False)
+    valid = spy_line.notna()
+    in_train_mask = pd.Series((spy.index >= W0) & (spy.index <= W1), index=spy.index)
+    dates = [d.strftime("%Y-%m-%d") for d in spy.index[valid]]
+    spy_plot = {
+        "dates": dates,
+        "close": [round(float(v), 2) for v in spy[valid].to_list()],
+        "line": [round(float(v), 2) for v in spy_line[valid].to_list()],
+        "uptrend": [bool(b) for b in up_mask[valid].to_list()],
+        "in_training": [bool(b) for b in in_train_mask[valid].to_list()],
+        "training_window": [str(W0.date()), str(W1.date())],
+        "bars_in_training": int(in_train_mask.sum()),
+        "downtrend_days_in_training": int(
+            (in_train_mask & ~up_mask.fillna(False)).sum()
         ),
-        encoding="utf-8",
-    )
+    }
+    (out / "spy_line.json").write_text(json.dumps(spy_plot, indent=1), encoding="utf-8")
 
     # report: plain lines grouped by label
     def grouped(key):

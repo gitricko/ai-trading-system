@@ -1,0 +1,95 @@
+<h2>SPY and its 200-day line</h2>
+<p class="sub" id="spy-sub">The market ticker. The shaded band is the training window; darker shading marks downtrend days.</p>
+
+<div id="spy-chart" class="spy-wrap"></div>
+
+<script>
+(function () {
+  var D = {{SPY_LINE}};
+  document.getElementById("spy-sub").innerHTML =
+    "Training window " + D.training_window[0] + " \u2192 " + D.training_window[1]
+    + ": <b>" + D.bars_in_training + "</b> trading days, of which <b>"
+    + D.downtrend_days_in_training + "</b> are downtrend days (the previous close was below the previous day's line)"
+    + " &middot; hover the chart for the values on any day";
+
+  var dates = D.dates;
+  var close = D.close;
+  var line = D.line;
+  var up = D.uptrend;
+  var inTr = D.in_training;
+
+  // downtrend-day markers within the training window (shaded dots)
+  var downPts = [];
+  for (var i = 0; i < dates.length; i++) {
+    if (inTr[i] && !up[i]) downPts.push([dates[i], close[i]]);
+  }
+
+  var traces = [
+    {
+      type: "scatter", x: dates, y: close,
+      mode: "lines",
+      name: "SPY close",
+      line: { color: "#0f766e", width: 2 },
+      hovertemplate: "%{x}<br>SPY close: <b>%{y:,.2f}</b><extra></extra>"
+    },
+    {
+      type: "scatter", x: dates, y: line,
+      mode: "lines",
+      name: "200-day line",
+      line: { color: "#1e3a5f", width: 1.4, dash: "dash" },
+      hovertemplate: "%{x}<br>200-day line: <b>%{y:,.2f}</b><extra></extra>"
+    },
+    {
+      type: "scatter", x: downPts.map(function (p) { return p[0]; }),
+      y: downPts.map(function (p) { return p[1]; }),
+      mode: "markers",
+      name: "downtrend days",
+      marker: { size: 3, color: "rgba(161, 98, 7, 0.55)" },
+      hovertemplate: "%{x}<br>downtrend day<br>SPY close: <b>%{y:,.2f}</b><extra></extra>"
+    }
+  ];
+
+  var y0 = Math.min.apply(null, close), y1 = Math.max.apply(null, close);
+  var pad = (y1 - y0) * 0.06;
+
+  var layout = {
+    margin: { l: 58, r: 18, t: 14, b: 46 },
+    width: null, height: 400,
+    xaxis: {
+      gridcolor: "rgba(15, 118, 110, 0.10)",
+      zeroline: false,
+      tickformat: "%b %Y",
+      rangeslider: { visible: false }
+    },
+    yaxis: {
+      gridcolor: "rgba(15, 118, 110, 0.10)",
+      zeroline: false,
+      range: [y0 - pad, y1 + pad],
+      separatethousands: true
+    },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(240, 246, 248, 0.35)",
+    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#111" },
+    legend: { orientation: "h", x: 0, y: -1.35, font: { size: 12 } },
+    showlegend: true,
+    shapes: [{
+      type: "rect",
+      x0: D.training_window[0], x1: D.training_window[1],
+      y0: 0, y1: 1, xref: "x", yref: "paper",
+      fillcolor: "rgba(30, 58, 95, 0.055)",
+      line: { width: 0 }, layer: "below"
+    }]
+  };
+
+  var el = document.getElementById("spy-chart");
+  var w = el.clientWidth || el.parentElement.clientWidth || 1100;
+  layout.width = w;
+  el.style.width =  "100%";
+  Plotly.newPlot("spy-chart", traces, layout, { responsive: true, displayModeBar: false });
+
+  window.addEventListener("resize", function () {
+    var nw = document.getElementById("spy-chart").clientWidth;
+    if (nw) Plotly.relayout("spy-chart", { width: nw });
+  });
+})();
+</script>
