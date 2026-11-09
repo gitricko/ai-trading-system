@@ -53,8 +53,8 @@
   var pad = (y1 - y0) * 0.06;
 
   var layout = {
-    margin: { l: 58, r: 18, t: 14, b: 46 },
-    width: null, height: 400,
+    margin: { l: 58, r: 18, t: 14, b: 58 },
+    width: null, height: 430,
     xaxis: {
       gridcolor: "rgba(15, 118, 110, 0.10)",
       zeroline: false,
@@ -70,7 +70,7 @@
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(240, 246, 248, 0.35)",
     font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#111" },
-    legend: { orientation: "h", x: 0, y: -1.35, font: { size: 12 } },
+    legend: { orientation: "h", x: 0, y: -1.15, font: { size: 12 } },
     showlegend: true,
     shapes: [{
       type: "rect",
@@ -80,6 +80,7 @@
       line: { width: 0 }, layer: "below"
     }]
   };
+
 
   var el = document.getElementById("spy-chart");
   var w = el.clientWidth || el.parentElement.clientWidth || 1100;
