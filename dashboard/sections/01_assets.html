@@ -3,8 +3,6 @@
 
 <div class="main">
   <div id="asset-table" style="overflow-x:auto"></div>
-  <h3 style="margin:26px 0 4px;font-size:1.05rem;color:var(--teal)">Which assets moves together</h3>
-  <div id="corr-chart" style="margin:0 auto"></div>
 </div>
 
 <script>
@@ -109,35 +107,5 @@
   html += '<p style="margin:6px 0 0;font-size:.75rem;color:rgba(17,17,17,.5)" class="legend">';
   html += 'KG = keeps going, SB = snaps back, SB&rsquo; = snaps back below the line, exc = excess return vs all windows, n = events, Mkt down = return on market&rsquo;s downtrend days, Up days = share of days above the 200-day line</p>';
   document.getElementById("asset-table").innerHTML = html;
-
-  // ---- correlation heat map (proper 2D matrix) ----
-  var tickers = DATA.rows.map(function (r) { return r.ticker; });
-  var C = DATA.correlations;
-  var n = tickers.length;
-  var z = [], text = [];
-  for (var i = 0; i < n; i++) {
-    z.push([]); text.push([]);
-    for (var j = 0; j < n; j++) {
-      var v = C[tickers[i]][tickers[j]];
-      z[i].push(v);
-      text[i].push(tickers[i] + " vs " + tickers[j] + ": <b>" + v.toFixed(2) + "</b>");
-    }
-  }
-  var trace = {
-    type: "heatmap", x: tickers, y: tickers, z: z,
-    text: text, texttemplate: "", textposition: "outside",
-    hovertemplate: "%{y} vs %{x}: <b>%{z:.3f}</b><extra></extra>",
-    colorscale: [[0, "#8a5a10"], [0.5, "#eef4f7"], [1, "#0f766e"]],
-    zmin: -1, zmax: 1,
-    xgap: 2, ygap: 2,
-    colorbar: { thickness: 14, len: 0.85, title: { text: "corr", side: "right", font: { size: 13 } } }
-  };
-  var layout = {
-    margin: { l: 90, r: 70, t: 10, b: 90 },
-    width: 820, height: 820,
-    xaxis: { tickangle: -45, font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" },
-    yaxis: { autorange: "reversed", font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" }
-  };
-  Plotly.newPlot("corr-chart", [trace], layout, { responsive: true, displayModeBar: false });
 })();
 </script>
