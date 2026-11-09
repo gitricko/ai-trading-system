@@ -37,10 +37,15 @@ Save:
 
 - `results/asset_profiles.csv`
 - `reports/asset_study.md` with the plain lines grouped by label.
+- `results/spy_line.json` with the market ticker's daily close, its line, and a flag for each day on whether it's an uptrend or downtrend day, plus the training window and how many training days are downtrend days.
 
 ### Dashboard section `01_assets`
 
-A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers, and a correlation heat map.
+A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers, and a correlation heat map. Show percentages as percentages (not bare decimals), keep the table columns short with a hover definition on each header, and show each ticker's name with a hover tooltip explaining what the fund is.
+
+### Dashboard section `02_market`
+
+A chart of the market ticker and its line. Mark the training window and its downtrend days. Hovering the chart shows the date, the close, the line value and whether that day is an uptrend or downtrend day. Keep the legend close to the x-axis with no big gap below the chart.
 
 ![prompt 1, part 1](images/1-1-logic.png)
 ![prompt 1, part 2](images/1-2-logic.png)
