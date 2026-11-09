@@ -33,14 +33,14 @@ Regime is **not a strategy** — it's **the layer every strategy reads**, sittin
 
 ### P — Proof
 - **Validate the back tester** — run it on fake known prices first, confirm it reproduces the seeded result. Then trust it with a real strategy. **This is a mandatory step the course hammers on** (#5 common mistake: "trusting a back test you never checked").
-- **Core strategy search.** In the course, a **QQQ ↔ gold** rotation: hold gold when VIX is above its middle (fear) and the market breadth is still > 50% uptrend (a specific regime combination — not "gold when scared" alone).
+- **Core strategy search.** In the course, a **QQQ ↔ gold** rotation between the trend engine and the safe asset. On top of it, an **optional market filter**: when VIX jumps above its middle (fear) while breadth is still > 50% uptrend, hold gold for the next five trading days, then back to normal.
 - **Sleeve funnel** — the 44-idea → 7-survivor gate below.
 - **Build the combined account** (core + sleeves) and test how sleeves get *picked / rotated into* a slot.
 - Optional add-ons — **market filter** (VIX + breadth), **stock screener** (each historical date needs *that date's* constituent list, e.g. Nike was in the 2022 S&P 500), **AI layer** (Claude reads Fed statements / earnings / news a rule can't express) — all pass the same funnel before they earn a slot.
 
 ### H — Harness
 - Build the **live bot** on Alpaca (paper account) in this repo's `src/`.
-- **Same code path back-test ↔ live** — the regime, data-reading, risk module, and order placement are identical; only the "send to broker vs. log to file" step differs. The course calls this out repeatedly and there's a **test** in this repo that checks the live signals match the back-test's (last 60 days in the course's prompt).
+- **Same code path back-test ↔ live** — the regime, data-reading, risk module, and order placement are identical; only the "send to broker vs. log to file" step differs. The course calls this out repeatedly, and its prompt requires a check that live signals match the back-test's over the last 60 days — a requirement a later prompt in this repo is expected to implement.
 - **Two scheduled runs** via a small ticker script:
   - **Evening** (after 7:00 p.m. NY on a trading day, before midnight): download the day's prices, compute orders, send them to Alpaca via the API keys in `.env`; broker holds until the open; message the phone (Telegram).
   - **Morning** (a little after the open): check every open position still has its **stop order** in place (re-issue any that the exchange dropped — Alpaca's API drops stops when the position goes flat and stops only become placeable once the position is *owned*), and message the phone.
