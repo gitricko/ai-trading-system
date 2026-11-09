@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import base64
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -349,10 +349,13 @@ def build(output: Path | None = None) -> Path:
         parts.append(
             f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n'
         )
+    stamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
     parts.append(
-        '  <footer class="colophon">built by dashboard/build.py on '
-        + date.today().isoformat()
-        + " &middot; double-click to open, no server needed</footer>\n"
+        '  <footer class="colophon">built '
+        + stamp
+        + " &middot; if this dashboard looks stale, check that this timestamp is fresh "
+        # (browsers cache double-clicked HTML) hard-refresh with Ctrl/Cmd+Shift+R
+        + "</footer>\n"
     )
     parts.append("  </div>\n")
 
