@@ -39,5 +39,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python dashboard/build.py
-      - run: test -s dashboard/index.html
+      - run: python -c "from pathlib import Path; from dashboard.build import build; build(Path('ci-dashboard.html'))"
+      - run: test -s ci-dashboard.html
