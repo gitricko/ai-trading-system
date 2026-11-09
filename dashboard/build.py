@@ -125,6 +125,21 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
 .spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
 
+/* Plotly hover pop-ups: match the dashboard dark tooltips (every chart) */
+.plotly .hoverlayer .hovertext {
+  background-color: var(--navy) !important;
+  border: none !important;
+  color: #f4f8f8 !important;
+  font-size: 0.82rem !important;
+  padding: 7px 11px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.25) !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+}
+.plotly .hoverlayer .hovertext * { font-family: inherit !important; text-shadow: none !important; }
+.plotly .hoverlayer .hovertext a { color: inherit; text-decoration: none; }
+
 /* 03_calm_wild HTML legend */
 .cw-legend { display: flex; align-items: center; gap: 18px;
   margin: 8px 0 0; padding: 0 4px; font-size: 0.85rem; color: var(--ink); }

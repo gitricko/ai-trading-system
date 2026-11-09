@@ -38,7 +38,7 @@
         + (r.calm_pct == null ? "–" : r.calm_pct.toFixed(2) + "%") + "</b>",
       '<span style="color:#a16207;font-weight:700">&#9632;</span>&nbsp;wild&nbsp;&nbsp;<b>'
         + (r.wild_pct == null ? "–" : r.wild_pct.toFixed(2) + "%") + "</b>",
-      "<span style='opacity:.65'>" + r.n_calm + " calm days &middot; " + r.n_wild + " wild days</span>"
+      "<span style='opacity:.65'>" + r.n_calm + " calm days · " + r.n_wild + " wild days</span>"
     ].join("<br>");
   }
   var hoverArr = cats.map(function (t, i) { return hoverText(i); });
@@ -68,7 +68,6 @@
     showlegend: false,
     font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
     yaxis: {
-      title: { text: "avg |move| per day (%)", font: { size: 12 } },
       zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
       range: [0, top]
     },

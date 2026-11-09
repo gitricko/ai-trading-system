@@ -66,6 +66,21 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
 .spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
 
+/* Plotly hover pop-ups: match the dashboard dark tooltips (every chart) */
+.plotly .hoverlayer .hovertext {
+  background-color: var(--navy) !important;
+  border: none !important;
+  color: #f4f8f8 !important;
+  font-size: 0.82rem !important;
+  padding: 7px 11px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.25) !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+}
+.plotly .hoverlayer .hovertext * { font-family: inherit !important; text-shadow: none !important; }
+.plotly .hoverlayer .hovertext a { color: inherit; text-decoration: none; }
+
 /* 03_calm_wild HTML legend */
 .cw-legend { display: flex; align-items: center; gap: 18px;
   margin: 8px 0 0; padding: 0 4px; font-size: 0.85rem; color: var(--ink); }
@@ -440,7 +455,7 @@ body.presenting #stage { display: block; }
         + (r.calm_pct == null ? "–" : r.calm_pct.toFixed(2) + "%") + "</b>",
       '<span style="color:#a16207;font-weight:700">&#9632;</span>&nbsp;wild&nbsp;&nbsp;<b>'
         + (r.wild_pct == null ? "–" : r.wild_pct.toFixed(2) + "%") + "</b>",
-      "<span style='opacity:.65'>" + r.n_calm + " calm days &middot; " + r.n_wild + " wild days</span>"
+      "<span style='opacity:.65'>" + r.n_calm + " calm days · " + r.n_wild + " wild days</span>"
     ].join("<br>");
   }
   var hoverArr = cats.map(function (t, i) { return hoverText(i); });
@@ -470,7 +485,6 @@ body.presenting #stage { display: block; }
     showlegend: false,
     font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
     yaxis: {
-      title: { text: "avg |move| per day (%)", font: { size: 12 } },
       zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
       range: [0, top]
     },
@@ -7555,7 +7569,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 23:06:42 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-09 23:49:19 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
