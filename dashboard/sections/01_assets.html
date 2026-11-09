@@ -79,7 +79,7 @@
       var r = byTicker[t]; if (!r) return;
       var nameTip = NAMES[t] ? (NAMES[t].replace(/"/g, "&quot;") + '</p>') : "";
       html += '<tr>'
-        + '<td><span class="tick" data-tip="' + (NAMES[t] || "").replace(/"/g, "&quot;") + '><strong class="accent-teal">' + t + '</strong></span></td>'
+        + '<td><span class="tick" data-tip="' + (NAMES[t] || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '">' + '<strong class="accent-teal">' + t + '</strong></span></td>'
         + '<td style="white-space:normal;min-width:150px">' + tag("keeps going", r.keeps_going) + tag("snaps back", r.snaps_back) + tag("holds up", r.holds_up) + '</td>'
         + '<td>' + pct(r.ann_return) + '</td>'
         + '<td>' + pct(r.volatility) + '</td>'
@@ -94,7 +94,7 @@
         + '<td>' + pct(r.snaps_back_excess, 3) + ' / ' + r.snaps_back_events + '</td>'
         + '<td>' + pct(r.snaps_back_below_line_excess, 3) + ' / ' + r.snaps_back_below_line_events + '</td>'
         + '<td>' + (r.holds_up ? '<span class="accent-teal">yes</span>' : '<span style="opacity:.4">no</span>') + '</td>'
-        + '<td><span class="line-ico" data-tip="' + r.plain.replace(/"/g, "&quot;").replace(/</g,"&lt;") + '">i</span></td>'
+        + '<td><span class="line-ico" data-tip="' + r.plain.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + '">i</span></td>'
         + '</tr>';
     });
   });
