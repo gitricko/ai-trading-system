@@ -45,17 +45,19 @@ All settings live in one place — [`CLAUDE.md`](CLAUDE.md), mirrored to [`AGENT
 
 ## The funnel (how a sleeve earns its place)
 
-| # | Gate | Question |
-|---|---|---|
-| 0 | Ideas | exact, testable rules defined in the prompt |
-| 1 | Fit the asset | does it fit the ticker it's on? |
-| 2 | Training | makes money **after costs** on the training window? |
-| 3 | Enough trades | statistically meaningful count? (dip-buy ≥ 15 · breakout ≥ 6) |
-| 4 | Profit factor | winners out-earn losers by **≥ 1.3×**? |
-| 5 | **Neighbors** | do *nearby parameter values* also profit (a hill, not a lucky spike)? |
-| 6 | **Locked test** | still works on data it never saw (2025 → present)? (**runs once**) |
+The course shows the ideas falling at each gate (**44 → 25 → 20 → 18 → 14 → 11 → 7**):
 
-In the course's run, **44 ideas → 7 survivors** (QQQ dip-buy, QQQ breakout, XLK dip-buy, XLK breakout, XLF breakout, XLY dip-buy, GLD dip-buy).
+| # | Gate | Question | Ideas left |
+|---|---|---|---|
+| 0 | Ideas | exact, testable rules defined in the prompt | 44 |
+| 1 | Fit the asset | does it fit the ticker it's on? | 25 |
+| 2 | Training | makes money **after costs** on the training window? | 20 |
+| 3 | Enough trades | statistically meaningful count? (dip-buy ≥ 15 · breakout ≥ 6) | 18 |
+| 4 | Profit factor | winners out-earn losers by **≥ 1.3×**? | 14 |
+| 5 | **Neighbors** | do *nearby parameter values* also profit (a hill, not a lucky spike)? | 11 |
+| 6 | **Locked test** | still works on data it never saw (2025 → present)? (**runs once**) | **7** |
+
+The 7 survivors: QQQ dip-buy, QQQ breakout, XLK dip-buy, XLK breakout, XLF breakout, XLY dip-buy, GLD dip-buy. Full funnel detail (gate thresholds, the two gates people most often skip) lives in the [wiki](docs/alpha-framework.md#the-sleeve-funnel-44--7-in-the-courses-run).
 
 ## Core vs. Sleeve (the account)
 

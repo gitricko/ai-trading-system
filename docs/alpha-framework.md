@@ -69,7 +69,7 @@ Regime is **not a strategy** — it's **the layer every strategy reads**, sittin
 | Share | ~70% (can drop to 50% for higher risk) | ~30% (can grow) |
 | Horizon | Long, "better than cash", barely trades | Short, trades often, **rotates** |
 | Role | Capital growth across the year | Setups that catch regime shifts the core misses |
-| Example (course) | QQQ ↔ gold rotation driven by VIX + breadth | Dip-buy / breakout per asset |
+| Example (course) | QQQ ↔ gold rotation on the 200-day line, with an optional VIX / breadth market filter on top | Dip-buy / breakout per asset |
 | Rebalance | Rare (only on regime reversal) | Constant — this is the anti-decay part |
 
 **Order matters**: each asset's *sleeves* are chosen based on the current regime so that when a sleeve trades, it does so *with* the market's direction that day, not against. This is what makes the bot "dynamic and adapted to how the market actually looks for the day" (course's words).
