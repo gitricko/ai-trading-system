@@ -115,6 +115,15 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .accent-teal { color: var(--teal); font-weight: 650; }
 .accent-bronze { color: var(--bronze); font-weight: 650; }
 
+/* 02_market html legend, sits just under the plot */
+.spy-legend { display: flex; align-items: center; gap: 18px;
+  margin: 8px 0 0; padding: 0 4px; font-size: 0.85rem; color: var(--ink); }
+.spy-legend .li { display: inline-flex; align-items: center; gap: 7px; }
+.spy-legend .sw { display: inline-block; width: 22px; height: 3px; border-radius: 2px; }
+.spy-legend .sw.line { background: #0f766e; }
+.spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
+.spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
+
 /* tooltips: hover target shows a dark, readable pop-up (pure CSS, works on file://) */
 [data-tip] { position: relative; cursor: help; }
 [data-tip]::after {
