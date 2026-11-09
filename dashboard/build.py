@@ -216,7 +216,7 @@ def build() -> Path:
     if not sections:
         raise SystemExit(f"no sections found in {SECTIONS_DIR}")
 
-    parts = [f'  <div class="page"><header class="masthead">AI Trading System</header>\n']
+    parts = ['  <div class="page"><header class="masthead">AI Trading System</header>\n']
     for i, path in enumerate(sections):
         body = path.read_text(encoding="utf-8").strip()
         body = body.replace("{{DATE}}", date.today().isoformat())
