@@ -57,3 +57,4 @@ These are the lines to change for a different market. Every prompt reads them fr
 - No rule changes because of recent results. A change goes back through the full test process first.
 - Scheduled reviews can fix code. They never change rules.
 - Every idea that gets tested is counted, including the ones that fail.
+- Dashboard tweaks never happen live: edit a section, run dashboard/build.py, hard-refresh. If a visual change doesn't show up, see docs/dashboard-fixes.md (browser cache + how to measure chart whitespace in headless chromium).
