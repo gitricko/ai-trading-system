@@ -1,0 +1,43 @@
+# PROMPT 1 · LOGIC
+
+## How each asset moves
+
+Study how each asset moves, so later prompts know which strategies fit which assets. No trading strategies yet.
+
+Use the study tickers in my settings and the training window only. Nothing after the training window gets read. A ticker that trades on days the market ticker doesn't, like bitcoin on weekends, is measured on its own bars and lined up on the market ticker's days whenever it's compared with the others.
+
+### 1. Write `src/labels.py` with the three labels
+
+So every later prompt uses the same code. Make the window and the event minimums settings, because the quarterly re-pick reuses it with different ones.
+
+- **KEEPS GOING**: take every close that's the highest close of the last 50 days, counting that day, while above its line. Skip any that comes fewer than 20 days after the last event kept, and only count events whose next 20 days end inside the window. Average the return from that close to the close 20 days later, minus the average of every 20-day return inside the window. It keeps going if that's above zero with at least 6 events.
+
+- **SNAPS BACK**: take every close with RSI(2) below 10 while above its line. Skip any that comes fewer than 5 days after the last event kept, and only count events whose next 5 days end inside the window. Average the return over the next 5 days, minus the average of every 5-day return inside the window. It snaps back if that's above zero with at least 12 events.
+
+- **HOLDS UP**: its annualized return on the market ticker's downtrend days beats the cash ticker's, and its daily correlation with the market ticker is below 0.5.
+
+### 2. Measure every ticker
+
+- **rough ride**: return per year, volatility, max drawdown and the share of uptrend days;
+- **trend gap**: annualized return on uptrend days minus annualized return on downtrend days;
+- **keeps going and snaps back**: the label numbers and event counts, plus the snaps back number for closes below the line instead of above it;
+- **moves with the market**: daily correlation with the market ticker;
+- **when the market falls**: annualized return on the market ticker's downtrend days;
+- **calm vs wild**: the average size of a daily move on calm days and on wild days.
+
+### 3. Give every ticker its labels
+
+Which can be more than one or none, and one plain-English line, like:
+
+> "XYZ: keeps going after new highs, doesn't bounce after quick drops, barely moves with the market, rough ride."
+
+### Outputs
+
+Save:
+
+- `results/asset_profiles.csv`
+- `reports/asset_study.md` with the plain lines grouped by label.
+
+### Dashboard section `01_assets`
+
+A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers, and a correlation heat map.
