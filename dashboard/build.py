@@ -218,13 +218,20 @@ def build(out: Path | None = None) -> Path:
     if not sections:
         raise SystemExit(f"no sections found in {SECTIONS_DIR}")
 
-    parts = ['  <div class="page"><header class="masthead">AI Trading System</header>\n']
+    parts = [
+        '  <div class="page"><header class="masthead">AI Trading System</header>\n'
+    ]
     for i, path in enumerate(sections):
         body = path.read_text(encoding="utf-8").strip()
         body = body.replace("{{DATE}}", date.today().isoformat())
-        parts.append(f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n')
-    parts.append("  <footer class=\"colophon\">built by dashboard/build.py on "
-                 + date.today().isoformat() + " &middot; double-click to open, no server needed</footer>\n")
+        parts.append(
+            f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n'
+        )
+    parts.append(
+        '  <footer class="colophon">built by dashboard/build.py on '
+        + date.today().isoformat()
+        + " &middot; double-click to open, no server needed</footer>\n"
+    )
     parts.append("  </div>\n")
 
     doc = f"""<!DOCTYPE html>
@@ -249,8 +256,10 @@ def build(out: Path | None = None) -> Path:
 </html>
 """
     out.write_text(doc, encoding="utf-8")
-    print(f"built {out} from {len(sections)} section(s): "
-          + ", ".join(p.name for p in sections))
+    print(
+        f"built {out} from {len(sections)} section(s): "
+        + ", ".join(p.name for p in sections)
+    )
     return out
 
 
