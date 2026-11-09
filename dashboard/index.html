@@ -92,12 +92,13 @@ table.asset-table th[data-tip]::after { width: 16ch; text-align: left; }
 .line-ico::before { left: auto; right: 9px; top: auto; bottom: calc(100% + 3px);
   border-bottom-color: transparent; border-top-color: var(--navy); }
 
-/* ticker name: hover for what the fund is (pop-up goes up, right-aligned) */
+/* ticker name: hover for what the fund is. The pop-up opens below the ticker,
+   anchored at its left edge and growing to the right, so it is never clipped
+   at the left edge of the page (ticker is the first column). */
 .tick { position: relative; cursor: help; white-space: nowrap; }
-.tick::after { left: auto; right: 0; top: auto; bottom: calc(100% + 5px);
-  width: 32ch; text-align: left; }
-.tick::before { left: auto; right: 10px; top: auto; bottom: calc(100% + 3px);
-  border-bottom-color: transparent; border-top-color: var(--navy); }
+.tick::after { left: 0; top: calc(100% + 5px); width: 34ch; text-align: left; }
+.tick::before { left: 12px; top: calc(100% - 3px);
+  border-bottom-color: var(--navy); border-top-color: transparent; }
 
 /* tooltip placement helpers (JS may add tip-above so pop-ups stay on screen) */
 [data-tip].tip-above::after { top: auto; bottom: calc(100% + 5px); }
@@ -7369,7 +7370,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 22:18:04 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-09 22:25:24 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
