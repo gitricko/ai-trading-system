@@ -18,6 +18,7 @@ OUT = HERE / "index.html"
 ROOT = HERE.parent
 STUDY_JSON = ROOT / "results" / "asset_study.json"
 SPY_LINE_JSON = ROOT / "results" / "spy_line.json"
+CALM_WILD_JSON = ROOT / "results" / "calm_wild.json"
 
 GROUPS_JSON = {
     "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
@@ -123,6 +124,15 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .spy-legend .sw.line { background: #0f766e; }
 .spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
 .spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
+
+/* 03_calm_wild HTML legend */
+.cw-legend { display: flex; align-items: center; gap: 18px;
+  margin: 8px 0 0; padding: 0 4px; font-size: 0.85rem; color: var(--ink); }
+.cw-legend .li { display: inline-flex; align-items: center; gap: 7px; }
+.cw-legend .sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
+.cw-legend .sw.calm { background: #0f766e; }
+.cw-legend .sw.wild { background: #a16207; }
+.cw-legend .sep { margin-left: auto; font-size: 0.78rem; color: rgba(17,17,17,0.55); }
 
 /* tooltips: hover target shows a dark, readable pop-up (pure CSS, works on file://) */
 [data-tip] { position: relative; cursor: help; }
@@ -344,6 +354,11 @@ def build(output: Path | None = None) -> Path:
             body = body.replace(
                 "{{SPY_LINE}}",
                 SPY_LINE_JSON.read_text(encoding="utf-8").strip(),
+            )
+        if "{{CALM_WILD}}" in body and CALM_WILD_JSON.exists():
+            body = body.replace(
+                "{{CALM_WILD}}",
+                CALM_WILD_JSON.read_text(encoding="utf-8").strip(),
             )
         if "Plotly.newPlot" in body:
             needs_plotly = True

@@ -66,6 +66,15 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
 .spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
 
+/* 03_calm_wild HTML legend */
+.cw-legend { display: flex; align-items: center; gap: 18px;
+  margin: 8px 0 0; padding: 0 4px; font-size: 0.85rem; color: var(--ink); }
+.cw-legend .li { display: inline-flex; align-items: center; gap: 7px; }
+.cw-legend .sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
+.cw-legend .sw.calm { background: #0f766e; }
+.cw-legend .sw.wild { background: #a16207; }
+.cw-legend .sep { margin-left: auto; font-size: 0.78rem; color: rgba(17,17,17,0.55); }
+
 /* tooltips: hover target shows a dark, readable pop-up (pure CSS, works on file://) */
 [data-tip] { position: relative; cursor: help; }
 [data-tip]::after {
@@ -312,6 +321,164 @@ body.presenting #stage { display: block; }
 </script>
   </section>
   <section class="panel" id="panel-03">
+    <h2>Calm vs wild</h2>
+<p class="sub" id="cw-sub">Loading&hellip;</p>
+
+<div id="cw-chart" class="cw-wrap"></div>
+<div class="cw-legend">
+  <span class="li"><i class="sw calm"></i>calm days</span>
+  <span class="li"><i class="sw wild"></i>wild days</span>
+  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;metals</span>
+</div>
+
+<script>
+(function () {
+  var D = {
+ "training_window": [
+  "2022-01-03",
+  "2024-12-31"
+ ],
+ "rows": [
+  {
+   "ticker": "SPY",
+   "group": "Stock indices",
+   "calm_pct": 0.599,
+   "wild_pct": 1.041,
+   "n_calm": 390,
+   "n_wild": 363
+  },
+  {
+   "ticker": "QQQ",
+   "group": "Stock indices",
+   "calm_pct": 0.839,
+   "wild_pct": 1.433,
+   "n_calm": 395,
+   "n_wild": 358
+  },
+  {
+   "ticker": "IWM",
+   "group": "Stock indices",
+   "calm_pct": 0.924,
+   "wild_pct": 1.357,
+   "n_calm": 373,
+   "n_wild": 380
+  },
+  {
+   "ticker": "DIA",
+   "group": "Stock indices",
+   "calm_pct": 0.554,
+   "wild_pct": 0.817,
+   "n_calm": 382,
+   "n_wild": 371
+  },
+  {
+   "ticker": "TLT",
+   "group": "Bonds",
+   "calm_pct": 0.744,
+   "wild_pct": 1.056,
+   "n_calm": 372,
+   "n_wild": 381
+  },
+  {
+   "ticker": "IEF",
+   "group": "Bonds",
+   "calm_pct": 0.377,
+   "wild_pct": 0.514,
+   "n_calm": 385,
+   "n_wild": 368
+  },
+  {
+   "ticker": "SHY",
+   "group": "Bonds",
+   "calm_pct": 0.087,
+   "wild_pct": 0.127,
+   "n_calm": 377,
+   "n_wild": 376
+  },
+  {
+   "ticker": "GLD",
+   "group": "Metals",
+   "calm_pct": 0.567,
+   "wild_pct": 0.831,
+   "n_calm": 366,
+   "n_wild": 387
+  },
+  {
+   "ticker": "SLV",
+   "group": "Metals",
+   "calm_pct": 1.1,
+   "wild_pct": 1.529,
+   "n_calm": 308,
+   "n_wild": 445
+  }
+ ]
+};
+  var tw = D.training_window;
+  document.getElementById("cw-sub").innerHTML =
+    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>wild</b> days &middot; training window "
+    + tw[0] + " \u2192 " + tw[1]
+    + ". A <b>wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
+    + "Hover a bar for the exact number and how many days it covers.";
+
+  // same order as the Assets table, limited to the three groups in scope
+  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "GLD", "SLV"];
+  var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
+  rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
+
+  var cats = [], calmY = [], wildY = [], calmN = [], wildN = [];
+  rows.forEach(function (r) {
+    cats.push(r.ticker);
+    calmY.push(r.calm_pct); wildY.push(r.wild_pct);
+    calmN.push(r.n_calm); wildN.push(r.n_wild);
+  });
+  var top = Math.max.apply(null, wildY.concat(calmY)) * 1.12;
+
+  var traces = [
+    {
+      type: "bar", name: "calm days", x: cats, y: calmY,
+      marker: { color: "rgba(15,118,110,0.8)" },
+      hoverinfo: "text",
+      text: cats.map(function (t, i) {
+        return t + " &middot; calm days<br>avg |move|: <b>" + rows[i].calm_pct
+          + "%</b><br>" + rows[i].n_calm + " days";
+      }),
+      customdata: calmN
+    },
+    {
+      type: "bar", name: "wild days", x: cats, y: wildY,
+      marker: { color: "rgba(161,98,7,0.8)" },
+      hoverinfo: "text",
+      text: cats.map(function (t, i) {
+        return t + " &middot; wild days<br>avg |move|: <b>" + rows[i].wild_pct
+          + "%</b><br>" + rows[i].n_wild + " days";
+      }),
+      customdata: wildN
+    },
+    // dotted vertical dividers: after index 3 (indices|bonds) and index 6 (bonds|metals)
+    { type: "scatter", mode: "lines", x: [3.5, 3.5], y: [0, top / 1.10],
+      line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }, hoverinfo: "skip" },
+    { type: "scatter", mode: "lines", x: [6.5, 6.5], y: [0, top / 1.10],
+      line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }, hoverinfo: "skip" }
+  ];
+
+  var layout = {
+    margin: { l: 58, r: 18, t: 28, b: 58 },
+    height: 420,
+    barmode: "group",
+    showlegend: false,
+    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
+    yaxis: {
+      title: { text: "avg |move| per day (%)", font: { size: 12 } },
+      zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
+      range: [0, top]
+    },
+    xaxis: { showgrid: false, tickangle: 0, font: { size: 13 } }
+  };
+  Plotly.newPlot("cw-chart", traces, layout, { responsive: true, displayModeBar: false });
+})();
+</script>
+  </section>
+  <section class="panel" id="panel-04">
     <h2>SPY and its 200-day line</h2>
 <p class="sub" id="spy-sub">The market ticker. The shaded band is the training window; darker shading marks downtrend days.</p>
 
@@ -7370,7 +7537,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 22:33:51 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-09 22:52:39 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>

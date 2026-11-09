@@ -196,6 +196,8 @@ def main() -> None:
                 "cash_ann_return_when_market_falls": cash_ret_on_mkt_down,
                 "avg_abs_move_calm_days": avg_calm,
                 "avg_abs_move_wild_days": avg_wild,
+                "n_calm_days": int(calm_m.sum()),
+                "n_wild_days": int(wild_m.sum()),
                 "plain": plain,
             }
         )
@@ -233,6 +235,35 @@ def main() -> None:
         ),
     }
     (out / "spy_line.json").write_text(json.dumps(spy_plot, indent=1), encoding="utf-8")
+
+    # calm vs wild daily move sizes (stock indices, bonds, metals) -> bar chart
+    cw_groups = ("Stock indices", "Bonds", "Metals")
+    calm_wild = {
+        "training_window": [str(W0.date()), str(W1.date())],
+        "rows": [
+            {
+                "ticker": r["ticker"],
+                "group": r["group"],
+                "calm_pct": (
+                    None
+                    if r["avg_abs_move_calm_days"] is None
+                    else round(r["avg_abs_move_calm_days"] * 100, 3)
+                ),
+                "wild_pct": (
+                    None
+                    if r["avg_abs_move_wild_days"] is None
+                    else round(r["avg_abs_move_wild_days"] * 100, 3)
+                ),
+                "n_calm": r["n_calm_days"],
+                "n_wild": r["n_wild_days"],
+            }
+            for r in rows
+            if r["group"] in cw_groups
+        ],
+    }
+    (out / "calm_wild.json").write_text(
+        json.dumps(calm_wild, indent=1), encoding="utf-8"
+    )
 
     # report: plain lines grouped by label
     def grouped(key):
