@@ -7,12 +7,47 @@ double-click (file://) with no server.
 
 from __future__ import annotations
 
+import base64
+import json
 from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SECTIONS_DIR = HERE / "sections"
 OUT = HERE / "index.html"
+ROOT = HERE.parent
+STUDY_JSON = ROOT / "results" / "asset_study.json"
+
+GROUPS_JSON = {
+    "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
+    "Sectors": ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLC", "XLRE"],
+    "Bonds": ["TLT", "IEF", "SHY"],
+    "Cash": ["SGOV"],
+    "Metals": ["GLD", "SLV"],
+    "Commodities": ["USO", "DBC"],
+    "Leveraged ETFs": ["TQQQ", "SQQQ"],
+    "Crypto": ["BTC-USD"],
+}
+
+PLOTLY_CDN = "https://cdn.plot.ly/plotly-3.0.1.min.js"
+
+
+def _plotly_script_tag() -> str:
+    """Inline the full plotly.js as a base64 data URI so the dashboard keeps
+    working with a double-click and no network. The CDN script is listed
+    first so machines that are online render faster."""
+    js = None
+    try:
+        import plotly as _pl
+        import logging
+        logging.disable(logging.CRITICAL)
+        here = Path(_pl.__file__).resolve().parent
+        js_path = here / "package_data" / "plotly.min.js"
+        blob = base64.b64encode(js_path.read_text(encoding="utf-8").encode("utf-8")).decode("ascii")
+        return (f'<script src="{PLOTLY_CDN}"></script>\n'
+                f'<script src="data:text/javascript;base64,{blob}"></script>')
+    except Exception:
+        return f'<script src="{PLOTLY_CDN}"></script>'
 
 
 CSS = """
@@ -55,6 +90,12 @@ table.settings th, table.settings td {
   text-align: left; padding: 7px 12px; border-bottom: 1px solid rgba(15, 118, 110, 0.25);
 }
 table.settings th { color: var(--teal); font-weight: 650; white-space: nowrap; }
+table.asset-table { font-size: 0.85rem; }
+table.asset-table td, table.asset-table th { white-space: nowrap; }
+table.asset-table td.grp {
+  background: rgba(30, 58, 95, 0.06); font-weight: 650; color: var(--navy);
+  padding-top: 10px; padding-bottom: 6px;
+}
 .accent-teal { color: var(--teal); font-weight: 650; }
 .accent-bronze { color: var(--bronze); font-weight: 650; }
 footer.colophon { font-size: 0.8rem; color: rgba(17, 17, 17, 0.55); text-align: center; }
@@ -115,7 +156,7 @@ JS = """
   });
 
   // shift + drag draws an amber highlighter stroke that fades ~2s after release
-  var drawing = false, last = null, stroke = [];
+  var drawing = false, stroke = [];
   function drawStroke() {
     if (stroke.length < 2) return;
     ctx.strokeStyle = "#d97706";
@@ -168,12 +209,12 @@ JS = """
 
   function fit() {
     var box = stage.querySelector(".stage-inner");
-    var sec = panels[current].cloneNode(true);
     stage.querySelectorAll("section.panel").forEach(function (n) { n.remove(); });
-    var natural = panels[current];
-    sec.id = "present-panel";
+    var sec = panels[current].cloneNode(true);
     box.appendChild(sec);
     var bw = box.clientWidth, bh = box.clientHeight;
+    // measure natural size first, unscaled
+    sec.style.transform = "none";
     var sw = sec.scrollWidth, sh = sec.scrollHeight;
     var k = Math.min(bw / sw, bh / sh, 1.4);
     sec.style.transform = "scale(" + k + ")";
@@ -211,28 +252,35 @@ JS = """
 """
 
 
-def build(out: Path | None = None) -> Path:
-    out = Path(out) if out is not None else OUT
-    out.parent.mkdir(parents=True, exist_ok=True)
+def build() -> Path:
     sections = sorted(SECTIONS_DIR.glob("*.html"), key=lambda p: p.name)
     if not sections:
         raise SystemExit(f"no sections found in {SECTIONS_DIR}")
 
-    parts = [
-        '  <div class="page"><header class="masthead">AI Trading System</header>\n'
-    ]
+    study, corr = {}, {}
+    if STUDY_JSON.exists():
+        study = json.loads(STUDY_JSON.read_text(encoding="utf-8"))
+        corr = study.get("correlations", {})
+
+    needs_plotly = False
+    parts = ['  <div class="page"><header class="masthead">AI Trading System</header>\n']
     for i, path in enumerate(sections):
         body = path.read_text(encoding="utf-8").strip()
         body = body.replace("{{DATE}}", date.today().isoformat())
-        parts.append(
-            f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n'
-        )
-    parts.append(
-        '  <footer class="colophon">built by dashboard/build.py on '
-        + date.today().isoformat()
-        + " &middot; double-click to open, no server needed</footer>\n"
-    )
+        if "{{ASSET_STUDY}}" in body:
+            body = body.replace("{{ASSET_STUDY}}", json.dumps(study))
+        if "{{ASSET_GROUPS}}" in body:
+            body = body.replace("{{ASSET_GROUPS}}", json.dumps(GROUPS_JSON))
+        if "{{CORRELATIONS}}" in body:
+            body = body.replace("{{CORRELATIONS}}", json.dumps(corr))
+        if "Plotly.newPlot" in body:
+            needs_plotly = True
+        parts.append(f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n')
+    parts.append("  <footer class=\"colophon\">built by dashboard/build.py on "
+                 + date.today().isoformat() + " &middot; double-click to open, no server needed</footer>\n")
     parts.append("  </div>\n")
+
+    plotly_tag = _plotly_script_tag() + "\n" if needs_plotly else ""
 
     doc = f"""<!DOCTYPE html>
 <html lang="en">
@@ -240,7 +288,7 @@ def build(out: Path | None = None) -> Path:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Trading System &mdash; dashboard</title>
-<style>
+{plotly_tag}<style>
 {CSS}
 </style>
 </head>
@@ -255,12 +303,10 @@ def build(out: Path | None = None) -> Path:
 </body>
 </html>
 """
-    out.write_text(doc, encoding="utf-8")
-    print(
-        f"built {out} from {len(sections)} section(s): "
-        + ", ".join(p.name for p in sections)
-    )
-    return out
+    OUT.write_text(doc, encoding="utf-8")
+    print(f"built {OUT} from {len(sections)} section(s): "
+          + ", ".join(p.name for p in sections))
+    return OUT
 
 
 if __name__ == "__main__":

@@ -1,0 +1,85 @@
+<h2>01 assets</h2>
+<p class="sub">How each asset moves, training window 2022-01-03 to 2024-12-31 &middot; labels: keeps going / snaps back / holds up. Hover any cell for its value.</p>
+
+<div class="main">
+  <div id="asset-table" style="overflow-x:auto"></div>
+  <h3 style="margin:26px 0 4px;font-size:1.05rem;color:var(--teal)">Correlation of daily returns</h3>
+  <div id="corr-chart" style="margin:0 auto"></div>
+</div>
+
+<script>
+(function () {
+  var DATA = {{ASSET_STUDY}};
+  var GROUPS = {{ASSET_GROUPS}};
+  var byTicker = {};
+  DATA.rows.forEach(function (r) { byTicker[r.ticker] = r; });
+  function pct(x) { return x == null || x === "" ? "–" : (100 * x).toFixed(1) + "%"; }
+  function num(x, d) { return x == null || x === "" ? "–" : Number(x).toFixed(d); }
+  function tag(txt, on) {
+    var c = on ? "var(--teal)" : "rgba(17,17,17,0.30)";
+    return '<span style="display:inline-block;margin:0 4px 2px 0;padding:1px 8px;border:1px solid '
+      + c + ';border-radius:10px;font-size:.72rem;color:' + c + ';white-space:nowrap">' + txt + '</span>';
+  }
+  var order = Object.keys(GROUPS);
+  var html = '<table class="settings asset-table"><thead><tr>'
+    + '<th>Asset</th><th>Labels</th><th>Ret/yr</th><th>Vol</th><th>Max DD</th><th>Up days</th>'
+    + '<th>Trend gap</th><th>Ret when mkt falls</th><th>Corr mkt</th><th>Calm&#8594; wild move</th>'
+    + '<th>Keeps going (exc./n)</th><th>Snaps back (exc./n)</th><th>Snaps below (exc./n)</th>'
+    + '<th>Holds up</th><th>Line</th></tr></thead><tbody>';
+  order.forEach(function (g) {
+    html += '<tr><td colspan="15" class="grp">' + g + '</td></tr>';
+    GROUPS[g].forEach(function (t) {
+      var r = byTicker[t]; if (!r) return;
+      html += '<tr>'
+        + '<td><strong class="accent-teal">' + t + '</strong></td>'
+        + '<td style="white-space:normal;min-width:150px">' + tag("keeps going", r.keeps_going) + tag("snaps back", r.snaps_back) + tag("holds up", r.holds_up) + '</td>'
+        + '<td>' + pct(r.ann_return) + '</td>'
+        + '<td>' + pct(r.volatility) + '</td>'
+        + '<td>' + pct(r.max_drawdown) + '</td>'
+        + '<td>' + pct(r.share_uptrend_days) + '</td>'
+        + '<td>' + num(r.trend_gap, 3) + '</td>'
+        + '<td>' + pct(r.ann_return_when_market_falls) + '</td>'
+        + '<td>' + num(r.corr_with_market, 2) + '</td>'
+        + '<td>' + num(r.avg_abs_move_calm_days, 3) + ' &#8594; ' + num(r.avg_abs_move_wild_days, 3) + '</td>'
+        + '<td>' + num(r.keeps_going_excess, 3) + ' / ' + r.keeps_going_events + '</td>'
+        + '<td>' + num(r.snaps_back_excess, 3) + ' / ' + r.snaps_back_events + '</td>'
+        + '<td>' + num(r.snaps_back_below_line_excess, 3) + ' / ' + r.snaps_back_below_line_events + '</td>'
+        + '<td>' + (r.holds_up ? '<span class="accent-teal">yes</span>' : '<span style="opacity:.4">no</span>') + '</td>'
+        + '<td style="white-space:normal;max-width:280px;font-size:.8rem;color:rgba(17,17,17,.7)">' + r.plain + '</td>'
+        + '</tr>';
+    });
+  });
+  html += '</tbody></table>';
+  document.getElementById("asset-table").innerHTML = html;
+
+  // ---- correlation heat map (proper 2D matrix) ----
+  var tickers = DATA.rows.map(function (r) { return r.ticker; });
+  var C = DATA.correlations;
+  var n = tickers.length;
+  var z = [], text = [];
+  for (var i = 0; i < n; i++) {
+    z.push([]); text.push([]);
+    for (var j = 0; j < n; j++) {
+      var v = C[tickers[i]][tickers[j]];
+      z[i].push(v);
+      text[i].push(tickers[i] + " vs " + tickers[j] + ": <b>" + v.toFixed(2) + "</b>");
+    }
+  }
+  var trace = {
+    type: "heatmap", x: tickers, y: tickers, z: z,
+    text: text, texttemplate: "", textposition: "outside",
+    hovertemplate: "%{y} vs %{x}: <b>%{z:.3f}</b><extra></extra>",
+    colorscale: [[0, "#8a5a10"], [0.5, "#eef4f7"], [1, "#0f766e"]],
+    zmin: -1, zmax: 1,
+    xgap: 2, ygap: 2,
+    colorbar: { thickness: 14, len: 0.85, title: { text: "corr", side: "right", font: { size: 13 } } }
+  };
+  var layout = {
+    margin: { l: 90, r: 70, t: 10, b: 90 },
+    width: 820, height: 820,
+    xaxis: { tickangle: -45, font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" },
+    yaxis: { autorange: "reversed", font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" }
+  };
+  Plotly.newPlot("corr-chart", [trace], layout, { responsive: true, displayModeBar: false });
+})();
+</script>

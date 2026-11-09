@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""Prompt 1 - Logic: how each asset moves.
+
+Uses the study tickers and the training window only (2022-01-03 to 2024-12-31).
+Nothing after the training window gets read. Data before the window only
+warms up the indicators.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / "src"))
+
+import data as D
+import labels as L
+
+TRAIN = (pd.Timestamp(D.TRAIN_WINDOW[0]), pd.Timestamp(D.TRAIN_WINDOW[1]))
+W0, W1 = TRAIN
+LINE = D.LINE_LENGTH
+BARS_PER_YEAR = L.BARS_PER_YEAR          # 252 for daily bars
+MARKET = D.MARKET_TICKER
+CASH = D.CASH_TICKER
+
+GROUPS = {
+    "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
+    "Sectors": ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLC", "XLRE"],
+    "Bonds": ["TLT", "IEF", "SHY"],
+    "Cash": ["SGOV"],
+    "Metals": ["GLD", "SLV"],
+    "Commodities": ["USO", "DBC"],
+    "Leveraged ETFs": ["TQQQ", "SQQQ"],
+    "Crypto": ["BTC-USD"],
+}
+
+
+def _in_window(idx, w0, w1) -> np.ndarray:
+    a = np.asarray(idx, dtype="datetime64[ns]")
+    return (a >= np.datetime64(pd.Timestamp(w0))) & (a <= np.datetime64(pd.Timestamp(w1)))
+
+
+def ann_ret(close: pd.Series, mask: np.ndarray | pd.Series) -> float | None:
+    """Annualized return of a set of days: mean close-to-close return times bars per year."""
+    ret = close.pct_change().to_numpy()
+    r = np.where(np.isfinite(ret), ret, np.nan)
+    m = mask.to_numpy() if isinstance(mask, pd.Series) else np.asarray(mask)
+    if not np.isfinite(r[m]).any():
+        return None
+    return float(np.nanmean(r[m]) * BARS_PER_YEAR)
+
+
+def market_downtrend_days(market: pd.Series) -> set:
+    down = ~L.uptrend_days(market, LINE).fillna(False)
+    return set(market.index[down.to_numpy()])
+
+
+def ann_on_market_down(close: pd.Series, down_set: set) -> float | None:
+    in_w = (close.index >= W0) & (close.index <= W1)
+    m = pd.Series([d in down_set for d in close.index], index=close.index) & in_w
+    return ann_ret(close, m)
+
+
+def main() -> None:
+    closes = D.load_all(D.STUDY_TICKERS)      # prints rows / first / last / missing per ticker
+    market = closes[MARKET]
+    cash = closes[CASH]
+    mkt_down = market_downtrend_days(market)
+    cash_ret_on_mkt_down = ann_on_market_down(cash, mkt_down)
+
+    rows = []
+    for t in D.STUDY_TICKERS:
+        c = closes[t]
+        in_w = (c.index >= W0) & (c.index <= W1)
+
+        ret = c.pct_change().fillna(0.0)
+        sub = c[in_w]
+        n_bars = int(in_w.sum())
+        ann_return = L.annualized(float(sub.iloc[-1] / sub.iloc[0]), max(n_bars - 1, 1))
+        vol = float(ret[in_w].std(ddof=1) * np.sqrt(BARS_PER_YEAR))
+        mdd = L.max_drawdown(sub)
+
+        up = L.uptrend_days(c, LINE).fillna(False)
+        share_up = float((up & in_w).sum() / n_bars)
+        ann_up = ann_ret(c, in_w & up)
+        ann_down = ann_ret(c, in_w & ~up)
+        trend_gap = (ann_up - ann_down) if (ann_up is not None and ann_down is not None) else None
+
+        a = c.index.intersection(market.index)
+        a = pd.Index([d for d in a if W0 <= d <= W1])
+        corr = float(c.loc[a].pct_change().dropna().corr(market.loc[a].pct_change().dropna()))
+
+        wild = L.wild_days(c, 20, 252).fillna(False)
+        ar = c.pct_change().abs()
+        calm_m = in_w & (~wild)
+        wild_m = in_w & wild
+        avg_calm = float(ar[calm_m].mean()) if int(calm_m.sum()) else None
+        avg_wild = float(ar[wild_m].mean()) if int(wild_m.sum()) else None
+
+        kg = L.keeps_going(c, LINE, TRAIN)
+        sb = L.snaps_back(c, LINE, TRAIN, side="above")
+        sb_below = L.snaps_back(c, LINE, TRAIN, side="below")
+        hu = L.holds_up(c, market, cash, LINE, TRAIN)
+
+        label_list = [n for n, h in (("keeps going", kg.label),
+                                     ("snaps back", sb.label),
+                                     ("holds up", hu.label)) if h]
+
+        # one plain-English line
+        bits = []
+        bits.append("keeps going after new highs" if kg.label
+                    else "doesn't keep going after new highs")
+        bits.append("bounces after quick drops" if sb.label
+                    else "doesn't bounce after quick drops")
+        if hu.label:
+            bits.append("holds up when the market falls")
+        elif hu.return_on_downtrend_days is not None:
+            bits.append("doesn't hold up when the market falls")
+        if corr is not None:
+            if corr >= 0.8:
+                bits.append("moves almost one-for-one with the market")
+            elif corr >= 0.5:
+                bits.append("moves strongly with the market")
+            elif abs(corr) < 0.3:
+                bits.append("barely moves with the market")
+            else:
+                bits.append("moves with the market")
+        if mdd is not None and vol is not None:
+            if mdd >= 0.4 and vol >= 0.30:
+                bits.append("rough ride")
+            elif mdd <= 0.15 and vol <= 0.20:
+                bits.append("smooth ride")
+        plain = f"{t}: " + ", ".join(bits) + "."
+
+        rows.append({
+            "ticker": t,
+            "group": next(g for g, vs in GROUPS.items() if t in vs),
+            "labels": " | ".join(label_list) if label_list else "(none)",
+            "ann_return": ann_return,
+            "volatility": vol,
+            "max_drawdown": mdd,
+            "share_uptrend_days": share_up,
+            "trend_gap": trend_gap,
+            "keeps_going": kg.label, "keeps_going_excess": kg.excess, "keeps_going_events": kg.events,
+            "snaps_back": sb.label, "snaps_back_excess": sb.excess, "snaps_back_events": sb.events,
+            "snaps_back_below_line": sb_below.label,
+            "snaps_back_below_line_excess": sb_below.excess,
+            "snaps_back_below_line_events": sb_below.events,
+            "holds_up": hu.label,
+            "corr_with_market": corr,
+            "ann_return_when_market_falls": ann_on_market_down(c, mkt_down),
+            "cash_ann_return_when_market_falls": cash_ret_on_mkt_down,
+            "avg_abs_move_calm_days": avg_calm,
+            "avg_abs_move_wild_days": avg_wild,
+            "plain": plain,
+        })
+
+    df = pd.DataFrame(rows)
+
+    out = ROOT / "results"
+    out.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out / "asset_profiles.csv", index=False)
+
+    corr_mat = (df.set_index("ticker")["corr_with_market"]).to_frame()
+    full_corr = pd.DataFrame({
+        t: closes[t].pct_change().loc[W0:W1] for t in D.STUDY_TICKERS
+    }).corr()
+    full_corr.to_csv(out / "correlations.csv")
+    (out / "asset_study.json").write_text(
+        json.dumps({"rows": rows, "correlations": full_corr.to_dict(),
+                    "training_window": [str(W0.date()), str(W1.date())]}, indent=1),
+        encoding="utf-8")
+
+    # report: plain lines grouped by label
+    def grouped(key):
+        out = [f"- {r['plain']}" for r in rows if key(r)]
+        return out or ["- (none)"]
+
+    none_key = lambda r: not (r["keeps_going"] or r["snaps_back"] or r["holds_up"])
+    md = ["# Asset study",
+          "",
+          f"Training window only: {W0.date()} to {W1.date()}. Nothing after the window was read.",
+          "",
+          "## Keeps going", ""] + grouped(lambda r: r["keeps_going"]) + ["",
+          "## Snaps back", ""] + grouped(lambda r: r["snaps_back"]) + ["",
+          "## Holds up", ""] + grouped(lambda r: r["holds_up"]) + ["",
+          "## No label", ""] + grouped(none_key) + [""]
+    (ROOT / "reports").mkdir(exist_ok=True)
+    (ROOT / "reports" / "asset_study.md").write_text("\n".join(md), encoding="utf-8")
+
+    print(f"\nwrote {out/'asset_profiles.csv'}, {out/'correlations.csv'}, {ROOT/'reports'/'asset_study.md'}")
+    for r in rows:
+        print(f"  {r['ticker']:>7}: {r['labels']:<40} {r['plain']}")
+
+
+if __name__ == "__main__":
+    main()
