@@ -98,7 +98,7 @@ pip install -r requirements.txt
 
 # Dashboard (single self-contained HTML file — opens by double-click, no server needed)
 python dashboard/build.py
-open dashboard/index.html
+open dashboard/index.html or make start (to start a simple webserver at dashboard folder)
 ```
 
 ## Conventions

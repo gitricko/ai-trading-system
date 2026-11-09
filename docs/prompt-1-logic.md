@@ -41,3 +41,6 @@ Save:
 ### Dashboard section `01_assets`
 
 A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers, and a correlation heat map.
+
+![prompt 1, part 1](images/1-1-logic.png)
+![prompt 1, part 2](images/1-2-logic.png)

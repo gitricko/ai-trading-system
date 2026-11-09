@@ -20,7 +20,19 @@ STUDY_JSON = ROOT / "results" / "asset_study.json"
 
 GROUPS_JSON = {
     "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
-    "Sectors": ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLC", "XLRE"],
+    "Sectors": [
+        "XLK",
+        "XLF",
+        "XLE",
+        "XLV",
+        "XLI",
+        "XLY",
+        "XLP",
+        "XLU",
+        "XLB",
+        "XLC",
+        "XLRE",
+    ],
     "Bonds": ["TLT", "IEF", "SHY"],
     "Cash": ["SGOV"],
     "Metals": ["GLD", "SLV"],
@@ -36,17 +48,19 @@ def _plotly_script_tag() -> str:
     """Inline the full plotly.js as a base64 data URI so the dashboard keeps
     working with a double-click and no network. The CDN script is listed
     first so machines that are online render faster."""
-    js = None
     try:
         import plotly as _pl
-        import logging
-        logging.disable(logging.CRITICAL)
+
         here = Path(_pl.__file__).resolve().parent
         js_path = here / "package_data" / "plotly.min.js"
-        blob = base64.b64encode(js_path.read_text(encoding="utf-8").encode("utf-8")).decode("ascii")
-        return (f'<script src="{PLOTLY_CDN}"></script>\n'
-                f'<script src="data:text/javascript;base64,{blob}"></script>')
-    except Exception:
+        blob = base64.b64encode(
+            js_path.read_text(encoding="utf-8").encode("utf-8")
+        ).decode("ascii")
+        return (
+            f'<script src="{PLOTLY_CDN}"></script>\n'
+            f'<script src="data:text/javascript;base64,{blob}"></script>'
+        )
+    except (OSError, AttributeError):
         return f'<script src="{PLOTLY_CDN}"></script>'
 
 
@@ -263,7 +277,9 @@ def build() -> Path:
         corr = study.get("correlations", {})
 
     needs_plotly = False
-    parts = ['  <div class="page"><header class="masthead">AI Trading System</header>\n']
+    parts = [
+        '  <div class="page"><header class="masthead">AI Trading System</header>\n'
+    ]
     for i, path in enumerate(sections):
         body = path.read_text(encoding="utf-8").strip()
         body = body.replace("{{DATE}}", date.today().isoformat())
@@ -275,9 +291,14 @@ def build() -> Path:
             body = body.replace("{{CORRELATIONS}}", json.dumps(corr))
         if "Plotly.newPlot" in body:
             needs_plotly = True
-        parts.append(f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n')
-    parts.append("  <footer class=\"colophon\">built by dashboard/build.py on "
-                 + date.today().isoformat() + " &middot; double-click to open, no server needed</footer>\n")
+        parts.append(
+            f'  <section class="panel" id="panel-{i:02d}">\n    {body}\n  </section>\n'
+        )
+    parts.append(
+        '  <footer class="colophon">built by dashboard/build.py on '
+        + date.today().isoformat()
+        + " &middot; double-click to open, no server needed</footer>\n"
+    )
     parts.append("  </div>\n")
 
     plotly_tag = _plotly_script_tag() + "\n" if needs_plotly else ""
@@ -304,8 +325,10 @@ def build() -> Path:
 </html>
 """
     OUT.write_text(doc, encoding="utf-8")
-    print(f"built {OUT} from {len(sections)} section(s): "
-          + ", ".join(p.name for p in sections))
+    print(
+        f"built {OUT} from {len(sections)} section(s): "
+        + ", ".join(p.name for p in sections)
+    )
     return OUT
 
 
