@@ -297,9 +297,12 @@ body.presenting #stage { display: block; }
     xgap: 2, ygap: 2,
     colorbar: { thickness: 14, len: 0.85, title: { text: "corr", side: "right", font: { size: 13 } } }
   };
+  // fill the section (capped for very wide screens) so there's no right-side gap
+  var holder = document.getElementById("corr-chart");
+  var w = Math.max(620, Math.min(1100, holder.clientWidth || 1100));
   var layout = {
     margin: { l: 90, r: 70, t: 10, b: 90 },
-    width: 820, height: 820,
+    width: w, height: w,
     xaxis: { tickangle: -45, font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" },
     yaxis: { autorange: "reversed", font: { size: 11 }, gridcolor: "rgba(15,118,110,0.15)" }
   };
@@ -7366,7 +7369,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 22:15:21 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-09 22:18:04 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
