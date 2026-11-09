@@ -140,6 +140,13 @@ table.asset-table th[data-tip]::after { width: 16ch; text-align: left; }
 .line-ico::before { left: auto; right: 9px; top: auto; bottom: calc(100% + 3px);
   border-bottom-color: transparent; border-top-color: var(--navy); }
 
+/* ticker name: hover for what the fund is (pop-up goes up, right-aligned) */
+.tick { position: relative; cursor: help; white-space: nowrap; }
+.tick::after { left: auto; right: 0; top: auto; bottom: calc(100% + 5px);
+  width: 32ch; text-align: left; }
+.tick::before { left: auto; right: 10px; top: auto; bottom: calc(100% + 3px);
+  border-bottom-color: transparent; border-top-color: var(--navy); }
+
 /* tooltip placement helpers (JS may add tip-above so pop-ups stay on screen) */
 [data-tip].tip-above::after { top: auto; bottom: calc(100% + 5px); }
 [data-tip].tip-above::before { top: auto; bottom: calc(100% + 3px);
