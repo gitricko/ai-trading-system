@@ -326,8 +326,8 @@ body.presenting #stage { display: block; }
 
 <div id="cw-chart" class="cw-wrap"></div>
 <div class="cw-legend">
-  <span class="li"><i class="sw calm"></i>calm days</span>
-  <span class="li"><i class="sw wild"></i>wild days</span>
+  <span class="li"><i class="sw calm"></i>calm</span>
+  <span class="li"><i class="sw wild"></i>wild</span>
   <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;metals</span>
 </div>
 
@@ -418,53 +418,53 @@ body.presenting #stage { display: block; }
     "Average size of a daily move (close to close) on <b>calm</b> days vs <b>wild</b> days &middot; training window "
     + tw[0] + " \u2192 " + tw[1]
     + ". A <b>wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
-    + "Hover a bar for the exact number and how many days it covers.";
+    + "Hover either bar for both numbers.";
 
-  // same order as the Assets table, limited to the three groups in scope
   var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "GLD", "SLV"];
   var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
   rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
 
-  var cats = [], calmY = [], wildY = [], calmN = [], wildN = [];
+  var cats = [], calmY = [], wildY = [];
   rows.forEach(function (r) {
     cats.push(r.ticker);
     calmY.push(r.calm_pct); wildY.push(r.wild_pct);
-    calmN.push(r.n_calm); wildN.push(r.n_wild);
   });
   var top = Math.max.apply(null, wildY.concat(calmY)) * 1.12;
 
+  // one shared hover text: "SPY  calm 0.60%  wild 1.04%   (390 / 363 days)"
+  function hoverText(i) {
+    var r = rows[i];
+    return [
+      "<b>" + cats[i] + "</b>",
+      '<span style="color:#0f766e;font-weight:700">&#9632;</span>&nbsp;calm&nbsp;&nbsp;<b>'
+        + (r.calm_pct == null ? "–" : r.calm_pct.toFixed(2) + "%") + "</b>",
+      '<span style="color:#a16207;font-weight:700">&#9632;</span>&nbsp;wild&nbsp;&nbsp;<b>'
+        + (r.wild_pct == null ? "–" : r.wild_pct.toFixed(2) + "%") + "</b>",
+      "<span style='opacity:.65'>" + r.n_calm + " calm days &middot; " + r.n_wild + " wild days</span>"
+    ].join("<br>");
+  }
+  var hoverArr = cats.map(function (t, i) { return hoverText(i); });
+
   var traces = [
     {
-      type: "bar", name: "calm days", x: cats, y: calmY,
+      type: "bar", name: "calm", x: cats, y: calmY,
       marker: { color: "rgba(15,118,110,0.8)" },
-      hoverinfo: "text",
-      text: cats.map(function (t, i) {
-        return t + " &middot; calm days<br>avg |move|: <b>" + rows[i].calm_pct
-          + "%</b><br>" + rows[i].n_calm + " days";
-      }),
-      customdata: calmN
+      hoverinfo: "text", text: hoverArr,
+      hoverlabel: { align: "center" }
     },
     {
-      type: "bar", name: "wild days", x: cats, y: wildY,
+      type: "bar", name: "wild", x: cats, y: wildY,
       marker: { color: "rgba(161,98,7,0.8)" },
-      hoverinfo: "text",
-      text: cats.map(function (t, i) {
-        return t + " &middot; wild days<br>avg |move|: <b>" + rows[i].wild_pct
-          + "%</b><br>" + rows[i].n_wild + " days";
-      }),
-      customdata: wildN
-    },
-    // dotted vertical dividers: after index 3 (indices|bonds) and index 6 (bonds|metals)
-    { type: "scatter", mode: "lines", x: [3.5, 3.5], y: [0, top / 1.10],
-      line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }, hoverinfo: "skip" },
-    { type: "scatter", mode: "lines", x: [6.5, 6.5], y: [0, top / 1.10],
-      line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }, hoverinfo: "skip" }
+      hoverinfo: "text", text: hoverArr,
+      hoverlabel: { align: "center" }
+    }
   ];
 
   var layout = {
     margin: { l: 58, r: 18, t: 28, b: 58 },
     height: 420,
     barmode: "group",
+    barwidth: 0.36,
     showlegend: false,
     font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
     yaxis: {
@@ -472,7 +472,23 @@ body.presenting #stage { display: block; }
       zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
       range: [0, top]
     },
-    xaxis: { showgrid: false, tickangle: 0, font: { size: 13 } }
+    xaxis: {
+      showgrid: false, tickangle: 0, font: { size: 13 },
+      ticks: "outside", ticklen: 5
+    },
+    // dotted divider lines between indices / bonds / metals (no axis labels)
+    shapes: [
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 3.5, x1: 3.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 6.5, x1: 6.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      }
+    ]
   };
   Plotly.newPlot("cw-chart", traces, layout, { responsive: true, displayModeBar: false });
 })();
@@ -7537,7 +7553,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 22:52:39 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-09 23:05:53 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
