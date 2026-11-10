@@ -75,6 +75,8 @@ def market_downtrend_days(market: pd.Series) -> set:
 
 
 def ann_on_market_down(close: pd.Series, down_set: set) -> float | None:
+    # down_set comes from the market ticker's bars, so bars outside the
+    # market calendar (e.g. BTC-USD weekends) are excluded by construction.
     in_w = (close.index >= W0) & (close.index <= W1)
     m = pd.Series([d in down_set for d in close.index], index=close.index) & in_w
     return ann_ret(close, m)
@@ -215,10 +217,11 @@ def main() -> None:
 
     # daily SPY series for the dashboard "SPY and its 200-day line" section:
     # warm-up from the start of the data (the line needs 200 bars), then the
-    # training window. Uptrend day = close at or above its 200-day line.
+    # training window. Uptrend day = previous close above previous day's
+    # line (L.uptrend_days, the shared definition).
     spy = market
     spy_line = spy.rolling(LINE, min_periods=LINE).mean()
-    up_mask = (spy >= spy_line).fillna(False)
+    up_mask = L.uptrend_days(spy, LINE).fillna(False)
     valid = spy_line.notna()
     in_train_mask = pd.Series((spy.index >= W0) & (spy.index <= W1), index=spy.index)
     dates = [d.strftime("%Y-%m-%d") for d in spy.index[valid]]
@@ -329,6 +332,8 @@ def main() -> None:
             "# Asset study",
             "",
             f"Training window only: {W0.date()} to {W1.date()}. Nothing after the window was read.",
+            "",
+            "Note: `trend_gap` is null where it is not measurable (e.g. SGOV, which has no trend).",
             "",
             "## Keeps going",
             "",

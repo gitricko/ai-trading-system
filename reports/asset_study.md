@@ -2,6 +2,8 @@
 
 Training window only: 2022-01-03 to 2024-12-31. Nothing after the window was read.
 
+Note: `trend_gap` is null where it is not measurable (e.g. SGOV, which has no trend).
+
 ## Keeps going
 
 - QQQ: keeps going after new highs, bounces after quick drops, doesn't hold up when the market falls, moves almost one-for-one with the market.
