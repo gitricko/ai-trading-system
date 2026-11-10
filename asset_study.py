@@ -216,8 +216,10 @@ def main() -> None:
     full_corr.to_csv(out / "correlations.csv")
 
     # daily SPY series for the dashboard "SPY and its 200-day line" section:
-    # warm-up from the start of the data (the line needs 200 bars), then the
-    # training window. Uptrend day = previous close above previous day's
+    # display only — shows the full series so the training-window shading reads
+    # in context (the 200-day line needs warm-up bars before the window too);
+    # each row is flagged `in_training` and no measure is computed from
+    # post-training data. Uptrend day = previous close above previous day's
     # line (L.uptrend_days, the shared definition).
     spy = market
     spy_line = spy.rolling(LINE, min_periods=LINE).mean()
