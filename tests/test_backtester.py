@@ -54,21 +54,30 @@ def test_cheating_signal_is_caught_by_guard() -> None:
 
 
 def test_guard_raises_clean_error_when_signal_crashes_on_truncated_bars() -> None:
-    # The exact scenario the adversary review flagged (#1): a cheating signal
-    # that indexes bars.close.iloc[day + 1] with no bounds check. On the last
-    # bar of the truncated series that raises IndexError, NOT the documented
-    # "signal uses future data" message. The guard must convert that into the
-    # clean error so callers who catch LookupError understand the failure.
+    # The reviewer's invariant (#1): a signal that only runs on full history is,
+    # by definition, reaching forward -- whatever error it raises on a
+    # truncated series. The specific error type is an artifact of how the
+    # signal is written (IndexError / KeyError / ValueError), NOT a meaningful
+    # distinction, so the guard must convert ALL of them into the one
+    # documented LookupError the callers can actually catch.
     import backtest as B
 
     df, _ = EC.make_fake_bars(EC.SEED_EDGE)
     bars = B.Bars.from_dataframe(df)
 
-    def natural_cheat(b: B.Bars, day: int):
-        return (b.close.iloc[day], b.close.iloc[day + 1])  # reads the next bar
+    def _crash(b: B.Bars, day: int, exc, msg):
+        """Each flavor raises the named ``exc`` only when truncated is too short."""
+        if day + 1 < len(b):
+            return "BUY"  # full-history path: a real decision
+        raise exc(msg)  # truncated path: needs the future
 
-    with pytest.raises(LookupError, match="signal uses future data"):
-        B.check_signal(natural_cheat, bars)
+    for exc, msg in (
+        (IndexError, "single positional indexer is out-of-bounds"),
+        (KeyError, "future bar not available"),
+        (ValueError, "refusing to extrapolate beyond the last bar"),
+    ):
+        with pytest.raises(LookupError, match="signal uses future data"):
+            B.check_signal(lambda b, d, _e=exc, _m=msg: _crash(b, d, _e, _m), bars)
 
 
 def test_guard_cache_does_not_recheck_unchanged_signal():

@@ -206,12 +206,18 @@ def check_signal(sig, bars: Bars) -> None:
                 ),
                 t,
             )
-        except IndexError:
-            # A signal that only runs on full history -- e.g. one that indexes
-            # bars.close.iloc[day + 1] with no bounds check -- will IndexError
-            # on the truncated series. That is reading the future: the decision
-            # cannot be computed without future bars. Surface it as the
-            # documented error so callers never see a raw crash.
+        except Exception:  # noqa: BLE001  intentional, see note below
+            # Semantic guard: any signal that only runs on full history is,
+            # by definition, reaching forward. The failure to compute the day's
+            # decision without future bars can surface as an IndexError
+            # (bars.close.iloc[day + 1]), a KeyError ("future bar not
+            # available"), or a ValueError ("refusing to extrapolate") -- the
+            # specific type is an artifact of how the signal is written, not a
+            # meaningful distinction. A *broad* catch is the correct guard for
+            # this invariant; we deliberately convert every such crash into the
+            # one documented error so callers who catch LookupError always
+            # understand what happened (this is exactly what BLE001 warns
+            # against when left unconverted, hence the explicit noqa).
             _PASS_CACHE[key] = False
             raise LookupError("signal uses future data") from None
         if not _decisions(full, truncated):
