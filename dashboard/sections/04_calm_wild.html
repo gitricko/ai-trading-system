@@ -1,10 +1,10 @@
-<h2>Calm vs wild</h2>
+<h2>Calm vs Wild</h2>
 <p class="sub" id="cw-sub">Loading&hellip;</p>
 
 <div id="cw-chart" class="cw-wrap"></div>
 <div class="cw-legend">
   <span class="li"><i class="sw calm"></i>calm</span>
-  <span class="li"><i class="sw wild"></i>wild</span>
+  <span class="li"><i class="sw wild"></i>Wild</span>
   <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;metals</span>
 </div>
 
@@ -13,9 +13,9 @@
   var D = {{CALM_WILD}};
   var tw = D.training_window;
   document.getElementById("cw-sub").innerHTML =
-    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>wild</b> days &middot; training window "
+    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>Wild</b> days &middot; training window "
     + tw[0] + " \u2192 " + tw[1]
-    + ". A <b>wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
+    + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
     + "Hover either bar for both numbers.";
 
   var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "GLD", "SLV"];
@@ -36,7 +36,7 @@
     return [
       "<b>" + cats[i] + "</b>",
       "calm:  " + p(r.calm_pct),
-      "wild:  " + p(r.wild_pct)
+      "Wild:  " + p(r.wild_pct)
     ].join("<br>");
   }
   var hoverArr = cats.map(function (t, i) { return hoverText(i); });
