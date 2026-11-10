@@ -1,0 +1,60 @@
+{
+  "prompt": "prompt-2-proof",
+  "cost_per_leg": 0.0005,
+  "starting_cash": 100000.0,
+  "checks": [
+    {
+      "name": "planted_edge",
+      "kind": "fake-data backtester check",
+      "description": "seed 7; after every flagged close the exit open (day t+2) gets +1%. Average trade net of cost should sit ~0.9%: the planted 1% minus 0.1% of costs.",
+      "seed": 7,
+      "n_flags": 156,
+      "n_trades": 156,
+      "avg_trade": 0.007926429379436734,
+      "pass_range": [
+        0.006,
+        0.012
+      ],
+      "passed": true
+    },
+    {
+      "name": "pure_noise",
+      "kind": "fake-data backtester check",
+      "description": "seed 8; same bars and flags, nothing planted. Average trade should be ~-0.1% (just the two 0.05% cost legs) plus noise.",
+      "seed": 8,
+      "n_flags": 140,
+      "n_trades": 140,
+      "avg_trade": -0.001488286752213071,
+      "pass_range": [
+        -0.004,
+        0.002
+      ],
+      "passed": true
+    },
+    {
+      "name": "cheating_signal_caught",
+      "kind": "look-ahead guard check",
+      "description": "a signal that reads the next bar's close must be stopped with 'signal uses future data'.",
+      "passed": true,
+      "error": "signal uses future data"
+    },
+    {
+      "name": "trend_switch_passes",
+      "kind": "look-ahead guard check + real-data run",
+      "description": "the real trend switch, market ticker vs cash ticker, 200-day line, must pass the same guard on the training window and then run the backtester.",
+      "passed": true,
+      "window": [
+        "2022-01-03",
+        "2024-12-31"
+      ],
+      "n_bars": 753,
+      "trades": 14,
+      "total_return": 0.3376770496816264,
+      "annualized_return": 0.10226213609815682,
+      "max_drawdown": 0.11524485581068637,
+      "return_per_drawdown": 0.8873466444883547,
+      "end_equity": 133767.70496816264
+    }
+  ],
+  "all_passed": true
+}
