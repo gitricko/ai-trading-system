@@ -170,7 +170,7 @@ body.presenting #stage { display: block; }
   <div class="page"><header class="masthead">AI Trading System</header>
   <section class="panel" id="panel-00">
     <h2>Trading System</h2>
-<p class="sub">AI trading system · today is <strong class="accent-teal">2026-11-09</strong></p>
+<p class="sub">AI trading system · today is <strong class="accent-teal">2026-11-10</strong></p>
 <table class="settings">
   <tr><th>Bar size</th><td>daily</td></tr>
   <tr><th>Data</th><td>2020-07-01 to 2026-10-23, Yahoo Finance, split- and dividend-adjusted</td></tr>
@@ -449,13 +449,11 @@ body.presenting #stage { display: block; }
   // one shared hover text: "SPY  calm 0.60%  wild 1.04%   (390 / 363 days)"
   function hoverText(i) {
     var r = rows[i];
+    function p(v) { return v == null ? "–" : v.toFixed(2) + "%"; }
     return [
       "<b>" + cats[i] + "</b>",
-      '<span style="color:#0f766e;font-weight:700">&#9632;</span>&nbsp;calm&nbsp;&nbsp;<b>'
-        + (r.calm_pct == null ? "–" : r.calm_pct.toFixed(2) + "%") + "</b>",
-      '<span style="color:#a16207;font-weight:700">&#9632;</span>&nbsp;wild&nbsp;&nbsp;<b>'
-        + (r.wild_pct == null ? "–" : r.wild_pct.toFixed(2) + "%") + "</b>",
-      "<span style='opacity:.65'>" + r.n_calm + " calm days · " + r.n_wild + " wild days</span>"
+      "calm:  " + p(r.calm_pct),
+      "wild:  " + p(r.wild_pct)
     ].join("<br>");
   }
   var hoverArr = cats.map(function (t, i) { return hoverText(i); });
@@ -7569,7 +7567,7 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-09 23:58:52 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-10 00:00:34 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
