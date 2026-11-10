@@ -39,7 +39,7 @@ Save:
 - `reports/asset_study.md` with the plain lines grouped by label.
 - `results/spy_line.json` with the market ticker's daily close, its line, and a flag for each day on whether it's an uptrend or downtrend day, plus the training window and how many training days are downtrend days.
 - `results/calm_wild.json` with, for each stock index, bond, cash and metal ticker: the average size of a daily move on calm days and on wild days (as percentages), how many calm days and how many wild days there are, and the training window.
-- `results/same_dip.json` with, for each stock index, bond, cash and metal ticker, on every training day its RSI(2) closes below 10: the average next-5-day return minus the window's average, split above and below its 200-day line, with the number of dips in each group and the training window.
+- `results/same_dip.json` with, for each stock index, bond, cash and metal ticker, on each RSI(2) dip episode (first day of a run of consecutive days where RSI(2) closes below 10, so one dip is not counted several times over): the average next-5-day return minus the window's average, split above and below its 200-day line, with the number of dips in each group and the training window.
 
 ### Dashboard section `01_assets`
 
@@ -59,7 +59,7 @@ A grouped bar chart for the stock index, bond, cash and metal tickers, in traini
 
 ### Dashboard section `05_same_dip`
 
-A grouped bar chart, last section, for the stock index, bond, cash and metal tickers, training window only: on every day RSI(2) closes below 10 (the same sharp dip), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
+A grouped bar chart, last section, for the stock index, bond, cash and metal tickers, training window only: on each RSI(2) dip episode (first day of a run of consecutive RSI(2)-below-10 days, so a dip is counted once, not once per day), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
 
 ![prompt 1, part 1](images/1-1-logic.png)
 ![prompt 1, part 2](images/1-2-logic.png)
