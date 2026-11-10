@@ -38,8 +38,8 @@ Save:
 - `results/asset_profiles.csv`
 - `reports/asset_study.md` with the plain lines grouped by label.
 - `results/spy_line.json` with the market ticker's daily close, its line, and a flag for each day on whether it's an uptrend or downtrend day, plus the training window and how many training days are downtrend days.
-- `results/calm_wild.json` with, for each stock index, bond and metal ticker: the average size of a daily move on calm days and on wild days (as percentages), how many calm days and how many wild days there are, and the training window.
-- `results/same_dip.json` with, for each stock index, bond and metal ticker, on every training day its RSI(2) closes below 10: the average next-5-day return minus the window's average, split above and below its 200-day line, with the number of dips in each group and the training window.
+- `results/calm_wild.json` with, for each stock index, bond, cash and metal ticker: the average size of a daily move on calm days and on wild days (as percentages), how many calm days and how many wild days there are, and the training window.
+- `results/same_dip.json` with, for each stock index, bond, cash and metal ticker, on every training day its RSI(2) closes below 10: the average next-5-day return minus the window's average, split above and below its 200-day line, with the number of dips in each group and the training window.
 
 ### Dashboard section `01_assets`
 
@@ -55,11 +55,11 @@ A chart of the market ticker and its line. Mark the training window and its down
 
 ### Dashboard section `04_calm_wild`
 
-A grouped bar chart for the stock index, bond and metal tickers, in training window only: two bars per ticker, one for calm days and one for wild days, showing the average size of the daily move, with a dotted divider between the three groups and thin bars with clear gaps. A wild day is one whose 20-day volatility is above its own median over the previous 252 days. Hovering a bar shows only the ticker, its calm value and its wild value, with nothing drawn on top of the bars.
+A grouped bar chart for the stock index, bond, cash and metal tickers, in training window only: two bars per ticker, one for calm days and one for wild days, showing the average size of the daily move, with a dotted divider between the three groups and thin bars with clear gaps. A wild day is one whose 20-day volatility is above its own median over the previous 252 days. Hovering a bar shows only the ticker, its calm value and its wild value, with nothing drawn on top of the bars.
 
 ### Dashboard section `05_same_dip`
 
-A grouped bar chart, last section, for the stock index, bond and metal tickers, training window only: on every day RSI(2) closes below 10 (the same sharp dip), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
+A grouped bar chart, last section, for the stock index, bond, cash and metal tickers, training window only: on every day RSI(2) closes below 10 (the same sharp dip), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
 
 ![prompt 1, part 1](images/1-1-logic.png)
 ![prompt 1, part 2](images/1-2-logic.png)

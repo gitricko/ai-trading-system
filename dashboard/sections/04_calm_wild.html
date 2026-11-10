@@ -5,7 +5,7 @@
 <div class="cw-legend">
   <span class="li"><i class="sw calm"></i>calm</span>
   <span class="li"><i class="sw wild"></i>Wild</span>
-  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;metals</span>
+  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;cash&nbsp;&middot;&nbsp;metals</span>
 </div>
 
 <script>
@@ -18,7 +18,7 @@
     + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
     + "Hover either bar for both numbers.";
 
-  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "GLD", "SLV"];
+  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV"];
   var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
   rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
 
@@ -73,7 +73,7 @@
       showgrid: false, tickangle: 0, font: { size: 13 },
       ticks: "outside", ticklen: 5
     },
-    // dotted divider lines between indices / bonds / metals (no axis labels)
+    // dotted divider lines: indices/bonds (3.5), bonds/cash (6.5), cash/metals (8.5)
     shapes: [
       {
         type: "line", xref: "x", yref: "paper",
@@ -83,6 +83,11 @@
       {
         type: "line", xref: "x", yref: "paper",
         x0: 6.5, x1: 6.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 8.5, x1: 8.5, y0: 0, y1: 1,
         line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
       }
     ]

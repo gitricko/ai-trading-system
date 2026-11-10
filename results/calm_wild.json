@@ -61,6 +61,14 @@
    "n_wild": 376
   },
   {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "calm_pct": 0.016,
+   "wild_pct": 0.017,
+   "n_calm": 289,
+   "n_wild": 464
+  },
+  {
    "ticker": "GLD",
    "group": "Metals",
    "calm_pct": 0.567,
