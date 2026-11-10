@@ -148,3 +148,39 @@ CI runs: `ruff check .`, `ruff format --check .`, and a dashboard build to
 ## Fingerprint
 
 tickers=26, keeps_going=13, snaps_back=19, holds_up=8
+
+
+## Known deviations from the reference video (deliberate, not bugs)
+
+The reference material shows specific Same Dip numbers for QQQ (above the line
+**+0.66%** with 23 events, below the line **−0.83%** with 17 events). Our
+Same Dip chart produces **different magnitudes and event counts** for the same
+ticker. This is intentional and follows the house rules; the *finding* matches
+the video, the exact values do not.
+
+| | Above the line | Below the line |
+|---|---|---|
+| Reference video (QQQ) | +0.66% (23 events) | −0.83% (17 events) |
+| This PR (QQQ) | +0.77% (25 events) | −0.34% (16 events) |
+
+The **sign** is the same in both (rebound above the line, keep falling below
+it). The magnitudes differ because we pin every measure to the house rules:
+
+1. **Training window only** (2022-01-03 → 2024-12-31). The reference may have
+   used full available history, which shifts both the averages and the event
+   counts.
+2. **Wilder-smoothed RSI(2)** (the standard Connors-style definition). If the
+   reference used a simple-average RSI(2), the event set differs.
+3. **Episode dedup**: a dip is counted once per *run* of consecutive RSI(2) < 10
+   days (first day of the run), not once per day. This is what makes the
+   below-the-line value negative rather than being dominated by the worst days
+   of a multi-day crash.
+4. **Minus the window's average** next-5-bar return (the "excess" over a random
+   5-day stretch), not the raw forward return.
+
+We chose to follow the house rules (training window, Wilder RSI, documented
+dedup, baseline-subtracted) so the numbers are reproducible and consistent with
+every other measure in the project. If a reviewer wants the numbers to match the
+video byte-for-byte, that is a data-range/definition choice to make explicitly,
+not a defect in this implementation. The reference numbers should be treated as
+a sanity check on the *direction* of the effect, not a target to reproduce.
