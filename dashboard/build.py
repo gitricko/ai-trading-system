@@ -125,15 +125,15 @@ section.panel:has(#asset-table) { padding: 18px 18px; }
 .spy-legend .sw.dash { background: repeating-linear-gradient(90deg, #1e3a5f 0 6px, transparent 6px 10px); }
 .spy-legend .sw.dot { width: 8px; height: 8px; border-radius: 50%; background: #a16207; opacity: 0.6; }
 
-/* Plotly hover pop-ups: match the dashboard dark tooltips (every chart) */
+/* Plotly hover pop-ups: white background, thin black border (every chart) */
 .plotly .hoverlayer .hovertext {
-  background-color: var(--navy) !important;
-  border: none !important;
-  color: #f4f8f8 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #111111 !important;
+  color: #111111 !important;
   font-size: 0.82rem !important;
   padding: 7px 11px !important;
-  border-radius: 6px !important;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.25) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15) !important;
   font-weight: 400 !important;
   letter-spacing: normal !important;
 }
