@@ -1,53 +1,53 @@
-<h2>Proof &mdash; the backtester&rsquo;s fake-data checks</h2>
-<p class="sub">Nothing real goes through the backtester until it passes these &middot;
-look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value on every buy and every sell
-&middot; $100,000 starting money &middot; 1,500 fake bars per run.</p>
+<h2>Verification of BackTester via fake-data check</h2>
+<p class="sub">Nothing real goes through the backtester until it passes these ·
+look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on every buy and every sell
+· $100,000 starting money · 1,500 fake bars per run.</p>
 
 <div class="proof-grid">
 
   <div class="proof-card" id="pc-edge">
     <div class="proof-head">
       <span class="proof-name">Planted edge <em class="muted">seed 7</em></span>
-      <span class="proof-badge" data-outcome="edge">&hellip;</span>
+      <span class="proof-badge" data-outcome="edge">…</span>
     </div>
     <div class="proof-metric">
-      <div><div class="label">average trade</div><div class="value" data-slot="edge-avg">&hellip;</div></div>
-      <div><div class="label">pass range</div><div class="range" data-slot="edge-range">&hellip;</div></div>
+      <div><div class="label">average trade</div><div class="value" data-slot="edge-avg">…</div></div>
+      <div><div class="label">pass range</div><div class="range" data-slot="edge-range">…</div></div>
     </div>
-    <div class="band" data-slot="edge-band" title="The measured average trade vs the pass range">&#160;</div>
+    <div class="band" data-slot="edge-band" title="The measured average trade vs the pass range"> </div>
     <div class="proof-note" data-slot="edge-note"></div>
   </div>
 
   <div class="proof-card" id="pc-noise">
     <div class="proof-head">
       <span class="proof-name">Pure noise <em class="muted">seed 8</em></span>
-      <span class="proof-badge" data-outcome="noise">&hellip;</span>
+      <span class="proof-badge" data-outcome="noise">…</span>
     </div>
     <div class="proof-metric">
-      <div><div class="label">average trade</div><div class="value" data-slot="noise-avg">&hellip;</div></div>
-      <div><div class="label">pass range</div><div class="range" data-slot="noise-range">&hellip;</div></div>
+      <div><div class="label">average trade</div><div class="value" data-slot="noise-avg">…</div></div>
+      <div><div class="label">pass range</div><div class="range" data-slot="noise-range">…</div></div>
     </div>
-    <div class="band" data-slot="noise-band" title="The measured average trade vs the pass range">&#160;</div>
+    <div class="band" data-slot="noise-band" title="The measured average trade vs the pass range"> </div>
     <div class="proof-note" data-slot="noise-note"></div>
   </div>
 
   <div class="proof-card proofs" id="pc-guard">
     <div class="proof-head">
       <span class="proof-name">Look-ahead guard</span>
-      <span class="proof-badge" data-outcome="guard">&hellip;</span>
+      <span class="proof-badge" data-outcome="guard">…</span>
     </div>
 
     <div class="guard-line">
-      <span class="guard-target">cheating signal<br><small>reads the next bar&rsquo;s close</small></span>
-      <span class="guard-state" data-outcome="cheat">&hellip;</span>
+      <span class="guard-target">cheating signal<br><small>reads the next bar's close</small></span>
+      <span class="guard-state" data-outcome="cheat">…</span>
     </div>
     <div class="guard-line">
-      <span class="guard-target">real trend switch<br><small>market vs. cash &middot; 200-day line</small></span>
-      <span class="guard-state" data-outcome="real">&hellip;</span>
+      <span class="guard-target">real trend switch<br><small>market vs. cash · 200-day line</small></span>
+      <span class="guard-state" data-outcome="real">…</span>
     </div>
 
     <table class="settings" id="real-run">
-      <thead><tr><th colspan="2">training-window run &mdash; SPY engine, SGOV fallback</th></tr></thead>
+      <thead><tr><th colspan="2">training-window run — SPY engine, SGOV fallback</th></tr></thead>
       <tbody data-slot="real-run-body"></tbody>
     </table>
   </div>
@@ -58,8 +58,8 @@ look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value
 (function () {
   var D = {{ENGINE_CHECK}};
 
-  function pct(x) { return x == null ? "&ndash;" : (100 * x).toFixed(2) + "%"; }
-  function money(x) { return x == null ? "&ndash;" : "$" + Math.round(x).toLocaleString("en-US"); }
+  function pct(x) { return x == null ? "—" : (100 * x).toFixed(2) + "%"; }
+  function money(x) { return x == null ? "—" : "$" + Math.round(x).toLocaleString("en-US"); }
 
   function badge(sel, state) {
     var el = document.querySelector('[data-outcome="' + sel + '"]');
@@ -72,9 +72,8 @@ look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value
     el.textContent = ok ? (okLabel || "stopped") : (badLabel || "not stopped");
   }
   // A horizontal range marker: the pass band (teal) and the measured average
-  // (a dot) on the same axis. Pure CSS &mdash; no fake data.
+  // (a dot) on the same axis. Pure CSS — no fake data.
   function band(slot, avg, lo, hi) {
-    var span = Math.max(lo, hi) - Math.min(lo, hi, avg, 0) || 1;
     var lo2 = Math.min(lo, avg, 0), hi2 = Math.max(hi, avg, 0);
     var range = hi2 - lo2 || 1;
     var pos = function (x) { return (100 * (x - lo2) / range).toFixed(2) + "%"; };
@@ -100,11 +99,11 @@ look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value
     document.querySelector('[data-slot="edge-range"]').textContent = pct(edge.pass_range[0]) + " to " + pct(edge.pass_range[1]);
     band("edge-band", edge.avg_trade, edge.pass_range[0], edge.pass_range[1]);
     document.querySelector('[data-slot="edge-note"]').textContent =
-      edge.n_trades + " trades after every flagged close. Each one&rsquo;s exit open gets the planted +1%; " +
+      edge.n_trades + " trades after every flagged close. Each one's exit open gets the planted +1%; " +
       "net of the two 0.05% cost legs it lands around 0.9%, inside the band.";
   } else {
     badge("edge", "fail");
-    document.querySelector('[data-slot="edge-note"]').innerHTML = "missing from <code>results/engine_check.json</code> &mdash; run <code>python engine_check.py</code>.";
+    document.querySelector('[data-slot="edge-note"]').innerHTML = "missing from <code>results/engine_check.json</code> — run <code>python engine_check.py</code>.";
   }
 
   if (noise) {
@@ -117,7 +116,7 @@ look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value
       "so a flat signal stays near that floor inside the band.";
   } else {
     badge("noise", "fail");
-    document.querySelector('[data-slot="noise-note"]').innerHTML = "missing from <code>results/engine_check.json</code> &mdash; run <code>python engine_check.py</code>.";
+    document.querySelector('[data-slot="noise-note"]').innerHTML = "missing from <code>results/engine_check.json</code> — run <code>python engine_check.py</code>.";
   }
 
   if (cheat) statePill("cheat", cheat.passed, "stopped", "not stopped");
@@ -129,12 +128,12 @@ look-ahead guard: 30 random days, seed 7 &middot; cost 0.05% of the traded value
   if (real) {
     var rows = [
       ["window", (real.window || []).join(" to ")],
-      ["bars", real.n_bars == null ? "&ndash;" : real.n_bars.toLocaleString("en-US")],
-      ["trades", real.trades == null ? "&ndash;" : real.trades],
+      ["bars", real.n_bars == null ? "—" : real.n_bars.toLocaleString("en-US")],
+      ["trades", real.trades == null ? "—" : real.trades],
       ["total return", pct(real.total_return)],
       ["return / year", pct(real.annualized_return)],
-      ["max drawdown", real.max_drawdown == null ? "&ndash;" : (-(100 * real.max_drawdown)).toFixed(1) + "%"],
-      ["return / drawdown", (real.return_per_drawdown == null || !isFinite(real.return_per_drawdown)) ? "&ndash;" : real.return_per_drawdown.toFixed(2)],
+      ["max drawdown", real.max_drawdown == null ? "—" : (-(100 * real.max_drawdown)).toFixed(1) + "%"],
+      ["return / drawdown", (real.return_per_drawdown == null || !isFinite(real.return_per_drawdown)) ? "—" : real.return_per_drawdown.toFixed(2)],
       ["end equity", money(real.end_equity)],
     ];
     document.querySelector('[data-slot="real-run-body"]').innerHTML =
