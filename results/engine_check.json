@@ -41,8 +41,9 @@
     {
       "name": "trend_switch_passes",
       "kind": "look-ahead guard check + real-data run",
-      "description": "the real trend switch, market ticker vs cash ticker, 200-day line, must pass the same guard on the training window and then run the backtester.",
+      "description": "the real trend switch, market ticker vs cash ticker, 200-day line, must pass the same guard on the training window and then run the backtester to a non-trivial, well-formed result.",
       "passed": true,
+      "problems": [],
       "window": [
         "2022-01-03",
         "2024-12-31"

@@ -196,15 +196,24 @@ def check_signal(sig, bars: Bars) -> None:
     days = np.sort(rng.choice(np.arange(5, n), size=_GUARD_DAYS, replace=False))
     for t in days:
         full = sig(bars, int(t))
-        truncated = sig(
-            Bars(
-                open=bars.open.iloc[: t + 1],
-                high=bars.high.iloc[: t + 1],
-                low=bars.low.iloc[: t + 1],
-                close=bars.close.iloc[: t + 1],
-            ),
-            t,
-        )
+        try:
+            truncated = sig(
+                Bars(
+                    open=bars.open.iloc[: t + 1],
+                    high=bars.high.iloc[: t + 1],
+                    low=bars.low.iloc[: t + 1],
+                    close=bars.close.iloc[: t + 1],
+                ),
+                t,
+            )
+        except IndexError:
+            # A signal that only runs on full history -- e.g. one that indexes
+            # bars.close.iloc[day + 1] with no bounds check -- will IndexError
+            # on the truncated series. That is reading the future: the decision
+            # cannot be computed without future bars. Surface it as the
+            # documented error so callers never see a raw crash.
+            _PASS_CACHE[key] = False
+            raise LookupError("signal uses future data") from None
         if not _decisions(full, truncated):
             _PASS_CACHE[key] = False
             raise LookupError("signal uses future data")

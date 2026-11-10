@@ -229,12 +229,33 @@ def check_trend_switch_passes() -> dict:
         price_map={D.MARKET_TICKER: spyc, D.CASH_TICKER: sgc},
     )
     r = res.report
+
+    # The guard letting the (causal) signal through is only half the point.
+    # The run itself must be non-trivial, otherwise a silent backtester bug
+    # (all-flat equity, a position that never fills) would still "pass" here.
+    equity = res.equity
+    problems: list[str] = []
+    if float(equity.iloc[0]) != STARTING_CASH:
+        problems.append("equity does not start at the starting pot")
+    if len(res.trades) < 1:
+        problems.append("no trades were filled (position never established)")
+    if not (equity.iloc[-1] > 0):
+        problems.append("final equity is not positive (not a real run)")
+    if equity.max() <= equity.min():
+        problems.append("equity curve is flat (backtester produced no movement)")
+    # Max drawdown must be a finite fraction of the peak, not a total wipeout.
+    if not (0.0 <= r["max_drawdown"] < 1.0):
+        problems.append(f"max drawdown out of range: {r['max_drawdown']:.4f}")
+
+    passed = not problems
     return {
         "name": "trend_switch_passes",
         "kind": "look-ahead guard check + real-data run",
         "description": "the real trend switch, market ticker vs cash ticker, 200-day line, "
-        "must pass the same guard on the training window and then run the backtester.",
-        "passed": True,
+        "must pass the same guard on the training window and then run the backtester "
+        "to a non-trivial, well-formed result.",
+        "passed": bool(passed),
+        "problems": problems,
         "window": [str(w0), str(w1)],
         "n_bars": len(bars),
         "trades": int(r["trades"]),

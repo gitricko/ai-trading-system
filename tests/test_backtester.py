@@ -53,6 +53,24 @@ def test_cheating_signal_is_caught_by_guard() -> None:
     assert "future data" in c.get("error", "")
 
 
+def test_guard_raises_clean_error_when_signal_crashes_on_truncated_bars() -> None:
+    # The exact scenario the adversary review flagged (#1): a cheating signal
+    # that indexes bars.close.iloc[day + 1] with no bounds check. On the last
+    # bar of the truncated series that raises IndexError, NOT the documented
+    # "signal uses future data" message. The guard must convert that into the
+    # clean error so callers who catch LookupError understand the failure.
+    import backtest as B
+
+    df, _ = EC.make_fake_bars(EC.SEED_EDGE)
+    bars = B.Bars.from_dataframe(df)
+
+    def natural_cheat(b: B.Bars, day: int):
+        return (b.close.iloc[day], b.close.iloc[day + 1])  # reads the next bar
+
+    with pytest.raises(LookupError, match="signal uses future data"):
+        B.check_signal(natural_cheat, bars)
+
+
 def test_guard_cache_does_not_recheck_unchanged_signal():
     import backtest as B
 
@@ -65,12 +83,21 @@ def test_guard_cache_does_not_recheck_unchanged_signal():
         calls["n"] += 1
         return "X"
 
-    B.check_signal(sig, bars)  # populates the pass cache
-    first = calls["n"]
-    B.check_signal(sig, bars)  # served from cache, no recomputation
-    assert ("n" in calls and calls["n"] == first) or True  # cache hit -> no new work
-    # A mutated signal (different source hash) must NOT be served the old pass.
-    assert True
+    B.check_signal(sig, bars)  # first check runs the guard (30 sig evals)
+    after_first = calls["n"]
+    assert after_first > 0
+    B.check_signal(sig, bars)  # identical code+bars -> served from pass cache
+    assert calls["n"] == after_first  # no further sig evaluations
+
+    # A code change makes the cache key differ, so the guard must re-run.
+    calls["n"] = 0
+
+    def sig2(b: B.Bars, day: int):  # different source text -> different hash
+        calls["n"] += 1
+        return ("X",)
+
+    B.check_signal(sig2, bars)
+    assert calls["n"] > 0  # not served the previous pass
 
 
 # --- real-data check (skipped when no research parquet is present) --------
