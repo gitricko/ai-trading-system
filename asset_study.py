@@ -287,6 +287,7 @@ def main() -> None:
 
         above_vals, below_vals = [], []
         n_events = 0
+        last_hit = -99
         for i in range(len(c)):
             if not (W0 <= c.index[i] <= W1):
                 continue
@@ -294,10 +295,15 @@ def main() -> None:
                 continue
             if not (np.isfinite(line.iloc[i]) and np.isfinite(fwd5.iloc[i])):
                 continue
-            n_events += 1
-            (above_vals if c.iloc[i] > line.iloc[i] else below_vals).append(
-                float(fwd5.iloc[i]) - base5
-            )
+            # count each dip episode once: only the first day of a run of
+            # consecutive RSI(2) < 10 days (a dip spans several days; don't
+            # double-count them)
+            if i - last_hit > 1:
+                n_events += 1
+                (above_vals if c.iloc[i] > line.iloc[i] else below_vals).append(
+                    float(fwd5.iloc[i]) - base5
+                )
+            last_hit = i
 
         row = {"ticker": t, "group": r["group"], "n_events": n_events}
         for name, vals in (("above", above_vals), ("below", below_vals)):
@@ -307,7 +313,7 @@ def main() -> None:
 
     same_dip = {
         "training_window": [str(W0.date()), str(W1.date())],
-        "rule": "RSI(2) below 10: average next-5-bar return minus the window's average, above vs below the 200-day line",
+        "rule": "RSI(2) dip episode (first day of a run of RSI(2) below 10): average next-5-bar return minus the window's average, above vs below the 200-day line",
         "rows": [same_dip_row(r) for r in rows if r["group"] in sd_groups],
     }
     (out / "same_dip.json").write_text(json.dumps(same_dip, indent=1), encoding="utf-8")
