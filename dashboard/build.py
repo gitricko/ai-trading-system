@@ -19,6 +19,7 @@ ROOT = HERE.parent
 STUDY_JSON = ROOT / "results" / "asset_study.json"
 SPY_LINE_JSON = ROOT / "results" / "spy_line.json"
 CALM_WILD_JSON = ROOT / "results" / "calm_wild.json"
+SAME_DIP_JSON = ROOT / "results" / "same_dip.json"
 
 GROUPS_JSON = {
     "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
@@ -374,6 +375,11 @@ def build(output: Path | None = None) -> Path:
             body = body.replace(
                 "{{CALM_WILD}}",
                 CALM_WILD_JSON.read_text(encoding="utf-8").strip(),
+            )
+        if "{{SAME_DIP}}" in body and SAME_DIP_JSON.exists():
+            body = body.replace(
+                "{{SAME_DIP}}",
+                SAME_DIP_JSON.read_text(encoding="utf-8").strip(),
             )
         if "Plotly.newPlot" in body:
             needs_plotly = True

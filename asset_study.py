@@ -265,6 +265,53 @@ def main() -> None:
         json.dumps(calm_wild, indent=1), encoding="utf-8"
     )
 
+    # same dip, different line: RSI(2) below 10 on a training day -> average
+    # next-5-bar return minus the window's average, above vs below the line.
+    sd_groups = {"Stock indices", "Bonds", "Metals"}
+
+    def same_dip_row(r):
+        t = r["ticker"]
+        c = closes[t].dropna()
+        line = L.sma(c, LINE)
+        rsi2 = L.wilder_rsi2(c)
+        fwd5 = c.pct_change(5).shift(-5)  # 5-bar move starting at day t
+
+        # window's average daily return, scaled to the same 5-bar horizon
+        r_all = c.pct_change().to_numpy()
+        m_win = _in_window(c.index, W0, W1)
+        base5 = (
+            float(np.nanmean(r_all[m_win])) * 5
+            if np.isfinite(r_all[m_win]).any()
+            else 0.0
+        )
+
+        above_vals, below_vals = [], []
+        n_events = 0
+        for i in range(len(c)):
+            if not (W0 <= c.index[i] <= W1):
+                continue
+            if not (np.isfinite(rsi2.iloc[i]) and rsi2.iloc[i] < 10):
+                continue
+            if not (np.isfinite(line.iloc[i]) and np.isfinite(fwd5.iloc[i])):
+                continue
+            n_events += 1
+            (above_vals if c.iloc[i] > line.iloc[i] else below_vals).append(
+                float(fwd5.iloc[i]) - base5
+            )
+
+        row = {"ticker": t, "group": r["group"], "n_events": n_events}
+        for name, vals in (("above", above_vals), ("below", below_vals)):
+            row[name + "_pct"] = round(float(np.mean(vals)) * 100, 3) if vals else None
+            row[name + "_n"] = len(vals)
+        return row
+
+    same_dip = {
+        "training_window": [str(W0.date()), str(W1.date())],
+        "rule": "RSI(2) below 10: average next-5-bar return minus the window's average, above vs below the 200-day line",
+        "rows": [same_dip_row(r) for r in rows if r["group"] in sd_groups],
+    }
+    (out / "same_dip.json").write_text(json.dumps(same_dip, indent=1), encoding="utf-8")
+
     # report: plain lines grouped by label
     def grouped(key):
         out = [f"- {r['plain']}" for r in rows if key(r)]
