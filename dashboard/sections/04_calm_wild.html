@@ -73,7 +73,7 @@
       showgrid: false, tickangle: 0, font: { size: 13 },
       ticks: "outside", ticklen: 5
     },
-    // dotted divider lines: indices/bonds (3.5), bonds/cash (6.5), cash/metals (8.5)
+    // dotted dividers: after indices (3.5), after bonds (6.5), after cash SGOV (7.5)
     shapes: [
       {
         type: "line", xref: "x", yref: "paper",
@@ -87,7 +87,7 @@
       },
       {
         type: "line", xref: "x", yref: "paper",
-        x0: 8.5, x1: 8.5, y0: 0, y1: 1,
+        x0: 7.5, x1: 7.5, y0: 0, y1: 1,
         line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
       }
     ]
