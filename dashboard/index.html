@@ -7774,7 +7774,247 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-10 14:27:34 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <section class="panel" id="panel-06">
+    <h2>Verification of BackTester via fake-data check</h2>
+<p class="sub">Nothing real goes through the backtester until it passes these ·
+look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on every buy and every sell
+· $100,000 starting money · 1,500 fake bars per run.</p>
+
+<div class="proof-grid">
+
+  <div class="proof-card" id="pc-edge">
+    <div class="proof-head">
+      <span class="proof-name">Planted edge <em class="muted">seed 7</em></span>
+      <span class="proof-badge" data-outcome="edge">…</span>
+    </div>
+    <div class="proof-metric">
+      <div><div class="label">average trade</div><div class="value" data-slot="edge-avg">…</div></div>
+      <div><div class="label">pass range</div><div class="range" data-slot="edge-range">…</div></div>
+    </div>
+    <div class="band" data-slot="edge-band" title="The measured average trade vs the pass range"> </div>
+    <div class="proof-note" data-slot="edge-note"></div>
+  </div>
+
+  <div class="proof-card" id="pc-noise">
+    <div class="proof-head">
+      <span class="proof-name">Pure noise <em class="muted">seed 8</em></span>
+      <span class="proof-badge" data-outcome="noise">…</span>
+    </div>
+    <div class="proof-metric">
+      <div><div class="label">average trade</div><div class="value" data-slot="noise-avg">…</div></div>
+      <div><div class="label">pass range</div><div class="range" data-slot="noise-range">…</div></div>
+    </div>
+    <div class="band" data-slot="noise-band" title="The measured average trade vs the pass range"> </div>
+    <div class="proof-note" data-slot="noise-note"></div>
+  </div>
+
+  <div class="proof-card proofs" id="pc-guard">
+    <div class="proof-head">
+      <span class="proof-name">Look-ahead guard</span>
+      <span class="proof-badge" data-outcome="guard">…</span>
+    </div>
+
+    <div class="guard-line">
+      <span class="guard-target">cheating signal<br><small>reads the next bar's close</small></span>
+      <span class="guard-state" data-outcome="cheat">…</span>
+    </div>
+    <div class="guard-line">
+      <span class="guard-target">real trend switch<br><small>market vs. cash · 200-day line</small></span>
+      <span class="guard-state" data-outcome="real">…</span>
+    </div>
+
+    <table class="settings" id="real-run">
+      <thead><tr><th colspan="2">training-window run — SPY engine, SGOV fallback</th></tr></thead>
+      <tbody data-slot="real-run-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var D = {
+  "prompt": "prompt-2-proof",
+  "cost_per_leg": 0.0005,
+  "starting_cash": 100000.0,
+  "checks": [
+    {
+      "name": "planted_edge",
+      "kind": "fake-data backtester check",
+      "description": "seed 7; after every flagged close the exit open (day t+2) gets +1%. Average trade net of cost should sit ~0.9%: the planted 1% minus 0.1% of costs.",
+      "seed": 7,
+      "n_flags": 156,
+      "n_trades": 156,
+      "avg_trade": 0.007926429379436734,
+      "pass_range": [
+        0.006,
+        0.012
+      ],
+      "passed": true
+    },
+    {
+      "name": "pure_noise",
+      "kind": "fake-data backtester check",
+      "description": "seed 8; same bars and flags, nothing planted. Average trade should be ~-0.1% (just the two 0.05% cost legs) plus noise.",
+      "seed": 8,
+      "n_flags": 140,
+      "n_trades": 140,
+      "avg_trade": -0.001488286752213071,
+      "pass_range": [
+        -0.004,
+        0.002
+      ],
+      "passed": true
+    },
+    {
+      "name": "cheating_signal_caught",
+      "kind": "look-ahead guard check",
+      "description": "a signal that reads the next bar's close must be stopped with 'signal uses future data'.",
+      "passed": true,
+      "error": "signal uses future data"
+    },
+    {
+      "name": "trend_switch_passes",
+      "kind": "look-ahead guard check + real-data run",
+      "description": "the real trend switch, market ticker vs cash ticker, 200-day line, must pass the same guard on the training window and then run the backtester to a non-trivial, well-formed result.",
+      "passed": true,
+      "problems": [],
+      "window": [
+        "2022-01-03",
+        "2024-12-31"
+      ],
+      "n_bars": 753,
+      "trades": 14,
+      "total_return": 0.3376770496816264,
+      "annualized_return": 0.10226213609815682,
+      "max_drawdown": 0.11524485581068637,
+      "return_per_drawdown": 0.8873466444883547,
+      "end_equity": 133767.70496816264
+    }
+  ],
+  "all_passed": true
+};
+
+  function pct(x) { return x == null ? "—" : (100 * x).toFixed(2) + "%"; }
+  function money(x) { return x == null ? "—" : "$" + Math.round(x).toLocaleString("en-US"); }
+
+  function badge(sel, state) {
+    var el = document.querySelector('[data-outcome="' + sel + '"]');
+    el.className = "proof-badge " + (state === "pass" ? "pass" : "fail");
+    el.textContent = state === "pass" ? "PASS" : "FAIL";
+  }
+  function statePill(sel, ok, okLabel, badLabel) {
+    var el = document.querySelector('[data-outcome="' + sel + '"]');
+    el.className = "guard-state " + (ok ? "ok" : "bad");
+    el.textContent = ok ? (okLabel || "stopped") : (badLabel || "not stopped");
+  }
+  // A horizontal range marker: the pass band (teal) and the measured average
+  // (a dot) on the same axis. Pure CSS — no fake data.
+  function band(slot, avg, lo, hi) {
+    var lo2 = Math.min(lo, avg, 0), hi2 = Math.max(hi, avg, 0);
+    var range = hi2 - lo2 || 1;
+    var pos = function (x) { return (100 * (x - lo2) / range).toFixed(2) + "%"; };
+    var el = document.querySelector('[data-slot="' + slot + '"]');
+    var inBand = avg >= lo && avg <= hi;
+    el.innerHTML =
+      '<div class="track">' +
+        '<div class="okzone" style="left:' + pos(lo) + ';width:' + (((hi - lo) / range) * 100).toFixed(2) + '%"></div>' +
+        '<div class="marker" style="left:' + pos(avg) + '"></div>' +
+      '</div>' +
+      '<div class="scale"><span>' + pct(lo2) + '</span><span class="cap">' +
+        'average ' + (inBand ? "inside" : "outside") + " the pass band</span><span>" + pct(hi2) + "</span></div>";
+  }
+
+  var byName = {};
+  (D.checks || []).forEach(function (c) { byName[c.name] = c; });
+  var edge = byName.planted_edge, noise = byName.pure_noise;
+  var cheat = byName.cheating_signal_caught, real = byName.trend_switch_passes;
+
+  if (edge) {
+    badge("edge", edge.passed ? "pass" : "fail");
+    document.querySelector('[data-slot="edge-avg"]').textContent = pct(edge.avg_trade);
+    document.querySelector('[data-slot="edge-range"]').textContent = pct(edge.pass_range[0]) + " to " + pct(edge.pass_range[1]);
+    band("edge-band", edge.avg_trade, edge.pass_range[0], edge.pass_range[1]);
+    document.querySelector('[data-slot="edge-note"]').textContent =
+      edge.n_trades + " trades after every flagged close. Each one's exit open gets the planted +1%; " +
+      "net of the two 0.05% cost legs it lands around 0.9%, inside the band.";
+  } else {
+    badge("edge", "fail");
+    document.querySelector('[data-slot="edge-note"]').innerHTML = "missing from <code>results/engine_check.json</code> — run <code>python engine_check.py</code>.";
+  }
+
+  if (noise) {
+    badge("noise", noise.passed ? "pass" : "fail");
+    document.querySelector('[data-slot="noise-avg"]').textContent = pct(noise.avg_trade);
+    document.querySelector('[data-slot="noise-range"]').textContent = pct(noise.pass_range[0]) + " to " + pct(noise.pass_range[1]);
+    band("noise-band", noise.avg_trade, noise.pass_range[0], noise.pass_range[1]);
+    document.querySelector('[data-slot="noise-note"]').textContent =
+      noise.n_trades + " trades, nothing planted. Any edge is just the noise; the two cost legs alone cost about 0.1%, " +
+      "so a flat signal stays near that floor inside the band.";
+  } else {
+    badge("noise", "fail");
+    document.querySelector('[data-slot="noise-note"]').innerHTML = "missing from <code>results/engine_check.json</code> — run <code>python engine_check.py</code>.";
+  }
+
+  if (cheat) statePill("cheat", cheat.passed, "stopped", "not stopped");
+  else statePill("cheat", false, "stopped", "missing");
+  if (real) statePill("real", real.passed, "got through", "blocked");
+  else statePill("real", false, "got through", "missing");
+  badge("guard", (cheat && cheat.passed && real && real.passed) ? "pass" : "fail");
+
+  if (real) {
+    var rows = [
+      ["window", (real.window || []).join(" to ")],
+      ["bars", real.n_bars == null ? "—" : real.n_bars.toLocaleString("en-US")],
+      ["trades", real.trades == null ? "—" : real.trades],
+      ["total return", pct(real.total_return)],
+      ["return / year", pct(real.annualized_return)],
+      ["max drawdown", real.max_drawdown == null ? "—" : (-(100 * real.max_drawdown)).toFixed(1) + "%"],
+      ["return / drawdown", (real.return_per_drawdown == null || !isFinite(real.return_per_drawdown)) ? "—" : real.return_per_drawdown.toFixed(2)],
+      ["end equity", money(real.end_equity)],
+    ];
+    document.querySelector('[data-slot="real-run-body"]').innerHTML =
+      rows.map(function (r) { return "<tr><th>" + r[0] + "</th><td>" + r[1] + "</td></tr>"; }).join("");
+  } else {
+    var b = document.querySelector('[data-slot="real-run-body"]');
+    if (b) b.innerHTML = "<tr><td>not present in results/engine_check.json</td></tr>";
+  }
+})();
+</script>
+
+<style scoped>
+  .proof-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: stretch; }
+  .proof-card { border: 1px solid rgba(15,118,110,0.4); border-radius: 6px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; }
+  .proof-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .proof-name { font-weight: 650; color: var(--navy); font-size: 1rem; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+  .proof-name em { font-style: normal; font-weight: 400; }
+  .muted { color: #64748b; font-size: 0.82rem; }
+  .proof-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 10px; border-radius: 10px; border: 1px solid; letter-spacing: 0.05em; white-space: nowrap; }
+  .proof-badge.pass { color: #0f766e; border-color: #0f766e; background: rgba(15,118,110,0.08); }
+  .proof-badge.fail { color: #b91c1c; border-color: #b91c1c; background: rgba(185,28,28,0.08); }
+  .proof-metric { display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; align-items: baseline; margin: 2px 0 6px; }
+  .proof-metric .label { color: #64748b; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .proof-metric .value { font-size: 1.5rem; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .proof-metric .range { color: #334155; font-size: 0.86rem; }
+  .proof-note { color: #475569; font-size: 0.82rem; line-height: 1.4; margin-top: auto; }
+  .band { margin: 8px 0 10px; }
+  .band .track { position: relative; height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
+  .band .okzone { position: absolute; top: 0; bottom: 0; background: rgba(15,118,110,0.45); }
+  .band .marker { position: absolute; top: -3px; width: 3px; height: 14px; background: #111; border-radius: 2px; transform: translateX(-50%); }
+  .band .scale { display: flex; justify-content: space-between; margin-top: 4px; color: #64748b; font-size: 0.72rem; }
+  .band .scale .cap { max-width: 62%; text-align: center; }
+  .guard-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px dashed rgba(15,118,110,0.25); font-size: 0.9rem; }
+  .guard-line:last-of-type { border-bottom: none; }
+  .guard-target { color: #334155; line-height: 1.25; }
+  .guard-target small { color: #64748b; }
+  .guard-state { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+  .guard-state.ok { color: #0f766e; border-color: #0f766e; background: rgba(15,118,110,0.08); }
+  .guard-state.bad { color: #b91c1c; border-color: #b91c1c; background: rgba(185,28,28,0.08); }
+  #real-run { margin-top: 8px; font-size: 0.84rem; }
+  #real-run td, #real-run th { padding: 5px 8px; }
+</style>
+  </section>
+  <footer class="colophon">built 2026-11-10 22:30:41 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
