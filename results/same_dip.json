@@ -69,6 +69,15 @@
    "below_n": 51
   },
   {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "n_events": 6,
+   "above_pct": -0.054,
+   "above_n": 6,
+   "below_pct": null,
+   "below_n": 0
+  },
+  {
    "ticker": "GLD",
    "group": "Metals",
    "n_events": 85,

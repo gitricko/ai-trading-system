@@ -237,7 +237,7 @@ def main() -> None:
     (out / "spy_line.json").write_text(json.dumps(spy_plot, indent=1), encoding="utf-8")
 
     # calm vs wild daily move sizes (stock indices, bonds, metals) -> bar chart
-    cw_groups = ("Stock indices", "Bonds", "Metals")
+    cw_groups = ("Stock indices", "Bonds", "Metals", "Cash")
     calm_wild = {
         "training_window": [str(W0.date()), str(W1.date())],
         "rows": [
@@ -267,7 +267,7 @@ def main() -> None:
 
     # same dip, different line: RSI(2) below 10 on a training day -> average
     # next-5-bar return minus the window's average, above vs below the line.
-    sd_groups = {"Stock indices", "Bonds", "Metals"}
+    sd_groups = {"Stock indices", "Bonds", "Metals", "Cash"}
 
     def same_dip_row(r):
         t = r["ticker"]

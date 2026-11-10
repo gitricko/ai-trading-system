@@ -7402,7 +7402,7 @@ body.presenting #stage { display: block; }
 <div class="cw-legend">
   <span class="li"><i class="sw calm"></i>calm</span>
   <span class="li"><i class="sw wild"></i>Wild</span>
-  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;metals</span>
+  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;cash&nbsp;&middot;&nbsp;metals</span>
 </div>
 
 <script>
@@ -7470,6 +7470,14 @@ body.presenting #stage { display: block; }
    "n_wild": 376
   },
   {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "calm_pct": 0.016,
+   "wild_pct": 0.017,
+   "n_calm": 289,
+   "n_wild": 464
+  },
+  {
    "ticker": "GLD",
    "group": "Metals",
    "calm_pct": 0.567,
@@ -7494,7 +7502,7 @@ body.presenting #stage { display: block; }
     + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
     + "Hover either bar for both numbers.";
 
-  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "GLD", "SLV"];
+  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV"];
   var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
   rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
 
@@ -7549,7 +7557,7 @@ body.presenting #stage { display: block; }
       showgrid: false, tickangle: 0, font: { size: 13 },
       ticks: "outside", ticklen: 5
     },
-    // dotted divider lines between indices / bonds / metals (no axis labels)
+    // dotted divider lines: indices/bonds (3.5), bonds/cash (6.5), cash/metals (8.5)
     shapes: [
       {
         type: "line", xref: "x", yref: "paper",
@@ -7559,6 +7567,11 @@ body.presenting #stage { display: block; }
       {
         type: "line", xref: "x", yref: "paper",
         x0: 6.5, x1: 6.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 8.5, x1: 8.5, y0: 0, y1: 1,
         line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
       }
     ]
@@ -7654,6 +7667,15 @@ body.presenting #stage { display: block; }
    "below_n": 51
   },
   {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "n_events": 6,
+   "above_pct": -0.054,
+   "above_n": 6,
+   "below_pct": null,
+   "below_n": 0
+  },
+  {
    "ticker": "GLD",
    "group": "Metals",
    "n_events": 85,
@@ -7712,7 +7734,7 @@ body.presenting #stage { display: block; }
       }
     ];
 
-    const groups = ["Stock indices", "Bonds", "Metals"];
+    const groups = ["Stock indices", "Bonds", "Cash", "Metals"];
     const boundaries = [];
     let start = 0;
     groups.forEach((g) => {
@@ -7752,7 +7774,7 @@ body.presenting #stage { display: block; }
 #same-dip .sw.below { width: 11px; height: 11px; background: rgba(161,98,7,0.85); display: inline-block; border-radius: 2px; margin-right: 5px; }
 </style>
   </section>
-  <footer class="colophon">built 2026-11-10 09:56:50 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-10 10:05:05 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
