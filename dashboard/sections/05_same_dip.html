@@ -76,7 +76,9 @@
       xaxis: { showgrid: false, tickfont: { size: 13, weight: 600 } },
       yaxis: {
         zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
-        range: [bot, top]
+        range: [bot, top],
+        tickformat: ",.2f",
+        ticksuffix: "%"
       },
       font: { family: "inherit" }
     });

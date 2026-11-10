@@ -7735,7 +7735,9 @@ body.presenting #stage { display: block; }
       xaxis: { showgrid: false, tickfont: { size: 13, weight: 600 } },
       yaxis: {
         zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
-        range: [bot, top]
+        range: [bot, top],
+        tickformat: ",.2f",
+        ticksuffix: "%"
       },
       font: { family: "inherit" }
     });
@@ -7750,7 +7752,7 @@ body.presenting #stage { display: block; }
 #same-dip .sw.below { width: 11px; height: 11px; background: rgba(161,98,7,0.85); display: inline-block; border-radius: 2px; margin-right: 5px; }
 </style>
   </section>
-  <footer class="colophon">built 2026-11-10 00:48:51 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-10 09:56:50 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
