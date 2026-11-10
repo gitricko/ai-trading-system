@@ -7395,192 +7395,6 @@ body.presenting #stage { display: block; }
 </script>
   </section>
   <section class="panel" id="panel-04">
-    <h2>Calm vs Wild</h2>
-<p class="sub" id="cw-sub">Loading&hellip;</p>
-
-<div id="cw-chart" class="cw-wrap"></div>
-<div class="cw-legend">
-  <span class="li"><i class="sw calm"></i>calm</span>
-  <span class="li"><i class="sw wild"></i>Wild</span>
-  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;cash&nbsp;&middot;&nbsp;metals</span>
-</div>
-
-<script>
-(function () {
-  var D = {
- "training_window": [
-  "2022-01-03",
-  "2024-12-31"
- ],
- "rows": [
-  {
-   "ticker": "SPY",
-   "group": "Stock indices",
-   "calm_pct": 0.599,
-   "wild_pct": 1.041,
-   "n_calm": 390,
-   "n_wild": 363
-  },
-  {
-   "ticker": "QQQ",
-   "group": "Stock indices",
-   "calm_pct": 0.839,
-   "wild_pct": 1.433,
-   "n_calm": 395,
-   "n_wild": 358
-  },
-  {
-   "ticker": "IWM",
-   "group": "Stock indices",
-   "calm_pct": 0.924,
-   "wild_pct": 1.357,
-   "n_calm": 373,
-   "n_wild": 380
-  },
-  {
-   "ticker": "DIA",
-   "group": "Stock indices",
-   "calm_pct": 0.554,
-   "wild_pct": 0.817,
-   "n_calm": 382,
-   "n_wild": 371
-  },
-  {
-   "ticker": "TLT",
-   "group": "Bonds",
-   "calm_pct": 0.744,
-   "wild_pct": 1.056,
-   "n_calm": 372,
-   "n_wild": 381
-  },
-  {
-   "ticker": "IEF",
-   "group": "Bonds",
-   "calm_pct": 0.377,
-   "wild_pct": 0.514,
-   "n_calm": 385,
-   "n_wild": 368
-  },
-  {
-   "ticker": "SHY",
-   "group": "Bonds",
-   "calm_pct": 0.087,
-   "wild_pct": 0.127,
-   "n_calm": 377,
-   "n_wild": 376
-  },
-  {
-   "ticker": "SGOV",
-   "group": "Cash",
-   "calm_pct": 0.016,
-   "wild_pct": 0.017,
-   "n_calm": 289,
-   "n_wild": 464
-  },
-  {
-   "ticker": "GLD",
-   "group": "Metals",
-   "calm_pct": 0.567,
-   "wild_pct": 0.831,
-   "n_calm": 366,
-   "n_wild": 387
-  },
-  {
-   "ticker": "SLV",
-   "group": "Metals",
-   "calm_pct": 1.1,
-   "wild_pct": 1.529,
-   "n_calm": 308,
-   "n_wild": 445
-  }
- ]
-};
-  var tw = D.training_window;
-  document.getElementById("cw-sub").innerHTML =
-    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>Wild</b> days &middot; training window "
-    + tw[0] + " \u2192 " + tw[1]
-    + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
-    + "Hover either bar for both numbers.";
-
-  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV"];
-  var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
-  rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
-
-  var cats = [], calmY = [], wildY = [];
-  rows.forEach(function (r) {
-    cats.push(r.ticker);
-    calmY.push(r.calm_pct); wildY.push(r.wild_pct);
-  });
-  var top = Math.max.apply(null, wildY.concat(calmY)) * 1.12;
-
-  // one shared hover text: "SPY  calm 0.60%  wild 1.04%   (390 / 363 days)"
-  function hoverText(i) {
-    var r = rows[i];
-    function p(v) { return v == null ? "–" : v.toFixed(2) + "%"; }
-    return [
-      "<b>" + cats[i] + "</b>",
-      "calm:  " + p(r.calm_pct),
-      "Wild:  " + p(r.wild_pct)
-    ].join("<br>");
-  }
-  var hoverArr = cats.map(function (t, i) { return hoverText(i); });
-
-  var traces = [
-    {
-      type: "bar", name: "calm", x: cats, y: calmY,
-      marker: { color: "rgba(15,118,110,0.8)" },
-      hoverinfo: "text", text: hoverArr, textposition: "none",
-      hoverlabel: { align: "center" }
-    },
-    {
-      type: "bar", name: "wild", x: cats, y: wildY,
-      marker: { color: "rgba(161,98,7,0.8)" },
-      hoverinfo: "text", text: hoverArr, textposition: "none",
-      hoverlabel: { align: "center" }
-    }
-  ];
-
-  var layout = {
-    margin: { l: 58, r: 18, t: 28, b: 58 },
-    height: 420,
-    barmode: "group",
-    barwidth: 0.28,
-    bargap: 0.55,
-    bargroupgap: 0.08,
-    showlegend: false,
-    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
-    yaxis: {
-      zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
-      range: [0, top]
-    },
-    xaxis: {
-      showgrid: false, tickangle: 0, font: { size: 13 },
-      ticks: "outside", ticklen: 5
-    },
-    // dotted dividers: after indices (3.5), after bonds (6.5), after cash SGOV (7.5)
-    shapes: [
-      {
-        type: "line", xref: "x", yref: "paper",
-        x0: 3.5, x1: 3.5, y0: 0, y1: 1,
-        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
-      },
-      {
-        type: "line", xref: "x", yref: "paper",
-        x0: 6.5, x1: 6.5, y0: 0, y1: 1,
-        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
-      },
-      {
-        type: "line", xref: "x", yref: "paper",
-        x0: 7.5, x1: 7.5, y0: 0, y1: 1,
-        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
-      }
-    ]
-  };
-  Plotly.newPlot("cw-chart", traces, layout, { responsive: true, displayModeBar: false });
-})();
-</script>
-  </section>
-  <section class="panel" id="panel-05">
     <section id="same-dip">
   <h2>Same Dip</h2>
   <p class="sub">
@@ -7774,7 +7588,193 @@ body.presenting #stage { display: block; }
 #same-dip .sw.below { width: 11px; height: 11px; background: rgba(161,98,7,0.85); display: inline-block; border-radius: 2px; margin-right: 5px; }
 </style>
   </section>
-  <footer class="colophon">built 2026-11-10 11:21:45 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <section class="panel" id="panel-05">
+    <h2>Calm vs Wild</h2>
+<p class="sub" id="cw-sub">Loading&hellip;</p>
+
+<div id="cw-chart" class="cw-wrap"></div>
+<div class="cw-legend">
+  <span class="li"><i class="sw calm"></i>calm</span>
+  <span class="li"><i class="sw wild"></i>Wild</span>
+  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;cash&nbsp;&middot;&nbsp;metals</span>
+</div>
+
+<script>
+(function () {
+  var D = {
+ "training_window": [
+  "2022-01-03",
+  "2024-12-31"
+ ],
+ "rows": [
+  {
+   "ticker": "SPY",
+   "group": "Stock indices",
+   "calm_pct": 0.599,
+   "wild_pct": 1.041,
+   "n_calm": 390,
+   "n_wild": 363
+  },
+  {
+   "ticker": "QQQ",
+   "group": "Stock indices",
+   "calm_pct": 0.839,
+   "wild_pct": 1.433,
+   "n_calm": 395,
+   "n_wild": 358
+  },
+  {
+   "ticker": "IWM",
+   "group": "Stock indices",
+   "calm_pct": 0.924,
+   "wild_pct": 1.357,
+   "n_calm": 373,
+   "n_wild": 380
+  },
+  {
+   "ticker": "DIA",
+   "group": "Stock indices",
+   "calm_pct": 0.554,
+   "wild_pct": 0.817,
+   "n_calm": 382,
+   "n_wild": 371
+  },
+  {
+   "ticker": "TLT",
+   "group": "Bonds",
+   "calm_pct": 0.744,
+   "wild_pct": 1.056,
+   "n_calm": 372,
+   "n_wild": 381
+  },
+  {
+   "ticker": "IEF",
+   "group": "Bonds",
+   "calm_pct": 0.377,
+   "wild_pct": 0.514,
+   "n_calm": 385,
+   "n_wild": 368
+  },
+  {
+   "ticker": "SHY",
+   "group": "Bonds",
+   "calm_pct": 0.087,
+   "wild_pct": 0.127,
+   "n_calm": 377,
+   "n_wild": 376
+  },
+  {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "calm_pct": 0.016,
+   "wild_pct": 0.017,
+   "n_calm": 289,
+   "n_wild": 464
+  },
+  {
+   "ticker": "GLD",
+   "group": "Metals",
+   "calm_pct": 0.567,
+   "wild_pct": 0.831,
+   "n_calm": 366,
+   "n_wild": 387
+  },
+  {
+   "ticker": "SLV",
+   "group": "Metals",
+   "calm_pct": 1.1,
+   "wild_pct": 1.529,
+   "n_calm": 308,
+   "n_wild": 445
+  }
+ ]
+};
+  var tw = D.training_window;
+  document.getElementById("cw-sub").innerHTML =
+    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>Wild</b> days &middot; training window "
+    + tw[0] + " \u2192 " + tw[1]
+    + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
+    + "Hover either bar for both numbers.";
+
+  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV"];
+  var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
+  rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
+
+  var cats = [], calmY = [], wildY = [];
+  rows.forEach(function (r) {
+    cats.push(r.ticker);
+    calmY.push(r.calm_pct); wildY.push(r.wild_pct);
+  });
+  var top = Math.max.apply(null, wildY.concat(calmY)) * 1.12;
+
+  // one shared hover text: "SPY  calm 0.60%  wild 1.04%   (390 / 363 days)"
+  function hoverText(i) {
+    var r = rows[i];
+    function p(v) { return v == null ? "–" : v.toFixed(2) + "%"; }
+    return [
+      "<b>" + cats[i] + "</b>",
+      "calm:  " + p(r.calm_pct),
+      "Wild:  " + p(r.wild_pct)
+    ].join("<br>");
+  }
+  var hoverArr = cats.map(function (t, i) { return hoverText(i); });
+
+  var traces = [
+    {
+      type: "bar", name: "calm", x: cats, y: calmY,
+      marker: { color: "rgba(15,118,110,0.8)" },
+      hoverinfo: "text", text: hoverArr, textposition: "none",
+      hoverlabel: { align: "center" }
+    },
+    {
+      type: "bar", name: "wild", x: cats, y: wildY,
+      marker: { color: "rgba(161,98,7,0.8)" },
+      hoverinfo: "text", text: hoverArr, textposition: "none",
+      hoverlabel: { align: "center" }
+    }
+  ];
+
+  var layout = {
+    margin: { l: 58, r: 18, t: 28, b: 58 },
+    height: 420,
+    barmode: "group",
+    barwidth: 0.28,
+    bargap: 0.55,
+    bargroupgap: 0.08,
+    showlegend: false,
+    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
+    yaxis: {
+      zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
+      range: [0, top]
+    },
+    xaxis: {
+      showgrid: false, tickangle: 0, font: { size: 13 },
+      ticks: "outside", ticklen: 5
+    },
+    // dotted dividers: after indices (3.5), after bonds (6.5), after cash SGOV (7.5)
+    shapes: [
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 3.5, x1: 3.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 6.5, x1: 6.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 7.5, x1: 7.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      }
+    ]
+  };
+  Plotly.newPlot("cw-chart", traces, layout, { responsive: true, displayModeBar: false });
+})();
+</script>
+  </section>
+  <footer class="colophon">built 2026-11-10 11:34:26 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>

@@ -53,13 +53,13 @@ A separate section with the correlation heat map of daily returns for the traini
 
 A chart of the market ticker and its line. Mark the training window and its downtrend days. Hovering the chart shows the date, the close, the line value and whether that day is an uptrend or downtrend day. Keep the legend close to the x-axis with no big gap below the chart.
 
-### Dashboard section `04_calm_wild`
+### Dashboard section `04_same_dip`
+
+A grouped bar chart, for the stock index, bond, cash and metal tickers, training window only: on each RSI(2) dip episode (first day of a run of consecutive RSI(2)-below-10 days, so a dip is counted once, not once per day), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
+
+### Dashboard section `05_calm_wild`
 
 A grouped bar chart for the stock index, bond, cash and metal tickers, in training window only: two bars per ticker, one for calm days and one for wild days, showing the average size of the daily move, with a dotted divider between the three groups and thin bars with clear gaps. A wild day is one whose 20-day volatility is above its own median over the previous 252 days. Hovering a bar shows only the ticker, its calm value and its wild value, with nothing drawn on top of the bars.
-
-### Dashboard section `05_same_dip`
-
-A grouped bar chart, last section, for the stock index, bond, cash and metal tickers, training window only: on each RSI(2) dip episode (first day of a run of consecutive RSI(2)-below-10 days, so a dip is counted once, not once per day), the average next-5-day return minus the window's average. Two bars per ticker, above and below its 200-day line, dotted dividers between the three groups, thin bars with clear gaps, nothing drawn on top of the bars. Hovering a bar shows the ticker, its above value and its below value, each with its number of dips.
 
 ![prompt 1, part 1](images/1-1-logic.png)
 ![prompt 1, part 2](images/1-2-logic.png)
