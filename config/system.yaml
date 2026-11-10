@@ -1,0 +1,4 @@
+core:
+  engine: QQQ
+  safe: GLD
+  line_days: 200

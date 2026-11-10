@@ -1,0 +1,205 @@
+<h2>The core: one rule, a few trades a year</h2>
+<p class="sub">Find the engine (biggest trend gap) and the safe asset (best return on the engine's downtrend days, correlation below 0.5, beating the cash ticker). Hold the engine while it closes above its 200-day line; otherwise the safe asset, traded at the next open. Verify on the neighbors and the locked test.
+<strong class="accent-teal">Fingerprint:</strong> <code id="fp">…</code></p>
+
+<div class="core-grid">
+
+  <div class="core-card">
+    <h3>Step 1 · engine candidates — trend gap</h3>
+    <table class="core-tbl" id="eng-tbl">
+      <thead><tr><th>ticker</th><th>trend gap</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="core-card">
+    <h3>Step 2 · safe candidates — return on the engine's downtrend days</h3>
+    <table class="core-tbl" id="safe-tbl">
+      <thead><tr><th>ticker</th><th>ann ret</th><th>corr w/ engine</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="core-card wide">
+    <h3>Step 4 · neighbors — total return on both windows (all must be green)</h3>
+    <div id="nbr-chart" class="nbr-wrap"></div>
+  </div>
+
+  <div class="core-card wide">
+    <h3>The core on both windows — one curve, drawdown underneath, locked test shaded, held strip below</h3>
+    <div class="equi-wrap">
+      <div id="eq-eq" class="eq-pane"></div>
+      <div id="eq-dd" class="dd-pane"></div>
+      <div id="eq-strip" class="strip-pane"></div>
+    </div>
+  </div>
+
+  <div class="core-card">
+    <h3>Steps 5 &amp; 6 — locked test, cost check, core saved</h3>
+    <div class="verdict" id="verdict">…</div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var D = {{CORE}};
+  var EN = D.engine, SA = D.safe, LN = D.line_days;
+
+  function pct(x) { return (x == null || !isFinite(x)) ? "—" : (100 * x).toFixed(1) + "%"; }
+
+  // Step 1 — engine table
+  var engRows = D.steps.step1_engine.candidates;
+  document.querySelector("#eng-tbl tbody").innerHTML = engRows.map(function (r) {
+    var chosen = r.selected;
+    return "<tr class='" + (chosen ? "chosen" : "") + "'><th>" + r.ticker +
+           "</th><td>" + pct(r.trend_gap) +
+           "</td><td class='flag'>" + (chosen ? "engine" : "") + "</td></tr>";
+  }).join("");
+
+  // Step 2 — safe table
+  var safeRows = D.steps.step2_safe.candidates;
+  document.querySelector("#safe-tbl tbody").innerHTML = safeRows.map(function (r) {
+    var chosen = r.selected;
+    return "<tr class='" + (chosen ? "chosen" : "") + "'><th>" + r.ticker +
+           "</th><td>" + pct(r.ann_return_on_downtrend) +
+           "</td><td>" + r.daily_corr_with_engine.toFixed(2) +
+             (r.is_cash ? " <em class='muted'>(cash)</em>" : "") +
+           "</td><td class='flag'>" + (chosen ? "safe" : (r.is_cash ? "cash" : (r.eligible ? "" : "ineligible"))) + "</td></tr>";
+  }).join("");
+
+  // Step 4 — neighbors grouped bar chart
+  var N = D.steps.step4_neighbors.neighbors;
+  var cats = N.map(function (n) { return n.name.replace(/ /g, "\n"); });
+  Plotly.newPlot("nbr-chart", [
+    { name: "training", x: cats, y: N.map(function (n) { return 100 * n.training.total_return; }),
+      type: "bar", marker: { color: "rgba(15,118,110,0.75)" },
+      customdata: N.map(function (n) { return "trades " + n.training.trades; }),
+      hovertemplate: "<b>%{y:.1f}%</b><br>%{customdata}<extra>%{fullData.name}</extra>" },
+    { name: "locked test", x: cats, y: N.map(function (n) { return 100 * n.locked_test.total_return; }),
+      type: "bar", marker: { color: "rgba(185,85,32,0.75)" },
+      customdata: N.map(function (n) { return "trades " + n.locked_test.trades; }),
+      hovertemplate: "<b>%{y:.1f}%</b><br>%{customdata}<extra>%{fullData.name}</extra>" },
+  ], {
+    margin: { l: 50, r: 15, t: 30, b: 120 },
+    barmode: "group",
+    yaxis: { title: "total return %", gridcolor: "rgba(15,118,110,0.15)" },
+    xaxis: { tickangle: -35, font: { size: 11 } },
+    legend: { orientation: "h", y: 1.12, x: 0 },
+  }, { responsive: true, displayModeBar: false });
+
+  // Step 3 — one equity curve over both windows + drawdown + held strip
+  var s3 = D.steps.step3_core_switch;
+  var xs = s3.equity_training.concat(s3.equity_locked).map(function (p) { return p[0]; });
+  var ys = s3.equity_training.concat(s3.equity_locked).map(function (p) { return p[1]; });
+  var ddYs = [];
+  var peak = -Infinity;
+  for (var i = 0; i < ys.length; i++) {
+    if (ys[i] > peak) peak = ys[i];
+    ddYs.push(100 * (ys[i] / peak - 1));
+  }
+  var lockedX0 = s3.equity_locked[0][0];
+  var shapes = [{ type: "rect", x0: lockedX0, x1: D.window.locked_test[1],
+                 yref: "paper", y0: 0, y1: 1,
+                 fillcolor: "rgba(185,85,32,0.10)", line: { width: 0 } }];
+  var annots = [{ x: lockedX0, y: 1.0, xref: "x", yref: "paper",
+                 text: " locked test ", showarrow: false,
+                 font: { size: 12, color: "#b95518" }, xanchor: "left" }];
+
+  var base = { margin: { l: 65, r: 25, t: 5, b: 25 },
+              xaxis: { tickfont: { size: 10 }, showgrid: false },
+              dragmode: false };
+  Plotly.newPlot("eq-eq",
+    [{ x: xs, y: ys, type: "scatter", mode: "lines",
+       line: { color: "#0f766e", width: 1.7 },
+       hovertemplate: "%{x}<br>$%{y:,.0f}<extra></extra>" }],
+    { margin: base.margin,
+      xaxis: base.xaxis,
+      yaxis: { title: { text: "equity ($)" }, gridcolor: "rgba(15,118,110,0.15)" },
+      shapes: shapes, annotations: annots,
+      hovermode: "x", dragmode: false },
+    { responsive: true, displayModeBar: false, scrollzoom: false });
+
+  Plotly.newPlot("eq-dd",
+    [{ x: xs, y: ddYs, type: "scatter", mode: "lines",
+       line: { color: "#b95518", width: 1.1 },
+       fill: "tozeroy", fillcolor: "rgba(185,85,32,0.20)",
+       hovertemplate: "%{x}<br>%{y:.1f}%<extra></extra>" }],
+    { margin: { l: 65, r: 25, t: 5, b: 25 },
+      xaxis: { tickfont: { size: 10 }, showgrid: false, showticklabels: false },
+      yaxis: { title: { text: "drawdown %" }, gridcolor: "rgba(15,118,110,0.15)", tickformat: ".0f" },
+      shapes: shapes, hovermode: "x", dragmode: false },
+    { responsive: true, displayModeBar: false, scrollzoom: false });
+
+  // Held strip: two thick step-lines, one per holding
+  var held = s3.held_training.concat(s3.held_locked);
+  var heldDates = held.map(function (p) { return p[0]; });
+  var engineY = held.map(function (p) { return p[1] === "engine" ? 20 : null; });
+  var safeY = held.map(function (p) { return p[1] === "safe" ? 20 : null; });
+  Plotly.newPlot("eq-strip", [
+    { name: EN + " (engine)", x: heldDates, y: engineY,
+      type: "scatter", mode: "lines", line: { color: "#0f766e", width: 10, shape: "hv" },
+      connectgaps: false, showlegend: true },
+    { name: SA + " (safe)", x: heldDates, y: safeY,
+      type: "scatter", mode: "lines", line: { color: "#b95518", width: 10, shape: "hv" },
+      connectgaps: false, showlegend: true },
+  ], {
+    margin: { l: 65, r: 25, t: 24, b: 20 },
+    xaxis: { showticklabels: false, showgrid: false },
+    yaxis: { visible: false, range: [0, 40] },
+    legend: { orientation: "h", y: 1.5, x: 0.4, font: { size: 11 } },
+    shapes: shapes, dragmode: false,
+  }, { responsive: true, displayModeBar: false, scrollzoom: false });
+
+  // Verdict
+  function badge(pass) {
+    return "<span class='badge " + (pass ? "pass" : "fail") + "'>" + (pass ? "PASS" : "FAIL") + "</span>";
+  }
+  var s4 = D.steps.step4_neighbors, s5 = D.steps.step5_locked_test, s6 = D.steps.step6_cost_check;
+  var passN = s4.neighbors.filter(function (n) { return n.passes; }).length;
+  var savedTxt = D.all_steps_pass
+    ? (EN + " / " + SA + " / " + LN + "-day line")
+    : "not saved — see failed steps";
+  document.getElementById("verdict").innerHTML =
+    "<div><span class='lbl'>Step 4 · neighbors</span> " + badge(s4.all_pass) +
+    "   <small>" + passN + " of " + s4.neighbors.length + " make money after costs, both windows</small></div>" +
+    "<div><span class='lbl'>Step 5 · locked test</span> " + badge(s5.passed) +
+    "   <small>total_return " + pct(s5.total_return) + "</small></div>" +
+    "<div><span class='lbl'>Step 6 · cost check (2×)</span> " + badge(s6.passes) +
+    "   <small>train " + pct(s6.training.total_return) + "   ·   lock " + pct(s6.locked_test.total_return) + "</small></div>" +
+    "<div><span class='lbl'>Core saved</span> " + (D.all_steps_pass ? badge(true) : badge(false)) +
+    "   <small>" + savedTxt + "</small></div>";
+
+  document.getElementById("fp").textContent = D.fingerprint;
+})();
+</script>
+
+<style scoped>
+  .core-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 10px; }
+  .core-card { border: 1px solid rgba(15,118,110,0.35); border-radius: 6px; padding: 12px 14px; background: #fff; }
+  .core-card.wide { grid-column: span 2; }
+  .core-card h3 { margin: 0 0 10px; font-size: 0.88rem; font-weight: 650; color: var(--navy); letter-spacing: 0.02em; }
+  .core-tbl { width: 100%; font-size: 0.88rem; border-collapse: collapse; }
+  .core-tbl th, .core-tbl td { padding: 5px 8px; border-bottom: 1px solid rgba(15,118,110,0.15); text-align: left; }
+  .core-tbl th { font-weight: 650; color: var(--navy); }
+  .core-tbl td { font-variant-numeric: tabular-nums; color: #334155; }
+  .core-tbl tr.chosen { background: rgba(15,118,110,0.07); }
+  .core-tbl tr.chosen th { color: #0a4f4a; }
+  .core-tbl td.flag { font-size: 0.78rem; color: #475569; font-weight: 600; }
+  .core-tbl tr.chosen td.flag { color: #0a4f4a; }
+  .muted { color: #64748b; font-size: 0.8em; }
+  .nbr-wrap { width: 100%; height: 340px; }
+  .equi-wrap { display: grid; grid-template-rows: 340px 140px 40px; gap: 4px; }
+  .eq-pane, .dd-pane, .strip-pane { width: 100%; }
+  .verdict { display: grid; gap: 8px; font-size: 0.92rem; background: #fff; }
+  .verdict .lbl { display: inline-block; min-width: 200px; color: #334155; }
+  .badge { font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; border: 1px solid; letter-spacing: 0.04em; margin-right: 6px; }
+  .badge.pass { color: #0f766e; border-color: #0f766e; background: rgba(15,118,110,0.08); }
+  .badge.fail { color: #b91c1c; border-color: #b91c1c; background: rgba(185,28,28,0.08); }
+  .verdict small { color: #64748b; }
+  @media (max-width: 720px) {
+    .core-grid { grid-template-columns: 1fr; }
+    .core-card.wide { grid-column: span 1; }
+    .verdict .lbl { min-width: 150px; }
+  }
+</style>
