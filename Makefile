@@ -1,3 +1,5 @@
+# Serve the repo root so the dashboard lives at /dashboard/
+# and any results/ asset can be fetched at its repo-relative path.
 
 start:
-	cd dashboard && python3 -m http.server 8778
+	python3 -m http.server 8778

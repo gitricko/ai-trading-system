@@ -110,9 +110,22 @@ def ensure_data(tickers: list[str] | None = None) -> pd.DataFrame:
             if i < len(missing) - 1:
                 time.sleep(0.5)
 
+        # The stored parquet is frozen research data: it can grow (new
+        # tickers) but never shrink, and it is written atomically so an
+        # interrupted run can never leave a truncated file behind.
         DATA_PARQUET.parent.mkdir(parents=True, exist_ok=True)
         save = {k: v for k, v in have.items() if len(v) > 0}
-        pd.DataFrame(save)[sorted(save)].to_parquet(DATA_PARQUET)
+        if DATA_PARQUET.exists():
+            stored_cols = set(pd.read_parquet(DATA_PARQUET).columns)
+            dropped = sorted(stored_cols - save.keys())
+            if dropped:
+                raise RuntimeError(
+                    "refusing to shrink the frozen research data; "
+                    f"stored columns missing from the save set: {dropped}"
+                )
+        tmp = DATA_PARQUET.with_suffix(".parquet.tmp")
+        pd.DataFrame(save)[sorted(save)].to_parquet(tmp)
+        tmp.replace(DATA_PARQUET)
         n_empty = [t for t in missing if t not in save]
         if n_empty:
             print(f"  empty (not saved): {', '.join(n_empty)}")
