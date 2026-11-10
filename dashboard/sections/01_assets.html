@@ -1,0 +1,111 @@
+<h2>Assets</h2>
+<p class="sub">How each asset moves, training window 2022-01-03 to 2024-12-31 &middot; labels: keeps going / snaps back / holds up. Hover any cell for its value.</p>
+
+<div class="main">
+  <div id="asset-table" style="overflow-x:auto"></div>
+</div>
+
+<script>
+(function () {
+  var DATA = {{ASSET_STUDY}};
+  var GROUPS = {{ASSET_GROUPS}};
+  var byTicker = {};
+  DATA.rows.forEach(function (r) { byTicker[r.ticker] = r; });
+  function pct(x, d) { return x == null || x === "" ? "–" : (100 * x).toFixed(d == null ? 1 : d) + "%"; }
+  function num(x, d) { return x == null || x === "" ? "–" : Number(x).toFixed(d); }
+  function tag(txt, on) {
+    var c = on ? "var(--teal)" : "rgba(17,17,17,0.30)";
+    return '<span style="display:inline-block;margin:0 4px 2px 0;padding:1px 8px;border:1px solid '
+      + c + ';border-radius:10px;font-size:.72rem;color:' + c + ';white-space:nowrap">' + txt + '</span>';
+  }
+  var order = Object.keys(GROUPS);
+  var NAMES = {
+    SPY:  "SPDR S&P 500 ETF — 500 largest US companies; also the market benchmark for this project",
+    QQQ:  "Invesco QQQ — 100 largest non-financial Nasdaq names, tech-heavy",
+    IWM:  "iShares Russell 2000 — the 2,000 smallest US stocks (small caps)",
+    DIA:  "SPDR Dow Jones — the 30 large blue-chip Dow stocks",
+    XLK:  "Technology Select Sector SPDR — US tech companies",
+    XLF:  "Financials Select Sector SPDR — US banks and financial companies",
+    XLE:  "Energy Select Sector SPDR — US and foreign energy producers",
+    XLV:  "Health Care Select Sector SPDR — pharma and medical devices",
+    XLI:  "Industrials Select Sector SPDR — airlines, transport, machinery",
+    XLY:  "Consumer Discretionary Select Sector SPDR — retail, entertainment",
+    XLP:  "Consumer Staples Select Sector SPDR — food, groceries, household goods",
+    XLU:  "Utilities Select Sector SPDR — power and water companies",
+    XLB:  "Materials Select Sector SPDR — mining, chemicals, building supplies",
+    XLC:  "Communication Services Select Sector SPDR — media, telecom, internet",
+    XLRE: "Real Estate Select Sector SPDR — REITs and property companies",
+    TLT:  "iShares 20+ Year Treasury — very long-dated US government bonds",
+    IEF:  "iShares 7–10 Year Treasury — medium-dated US government bonds",
+    SHY:  "iShares 1–3 Year Treasury — short-dated US government bonds",
+    SGOV: "iShares 0–3 Month Treasury Bill — cash-like; this project's idle-money parking spot",
+    GLD:  "SPDR Gold Trust — physical gold bullion",
+    SLV:  "iShares Silver Trust — physical silver bullion",
+    USO:  "United States Oil Fund — WTI crude oil futures",
+    DBC:  "Invesco DB Commodity Index — broad basket of energy, metals and softs",
+    TQQQ: "ProShares UltraPro QQQ — 3× daily-leveraged QQQ; only for risk-tolerant sleeves",
+    SQQQ: "ProShares UltraPro Short QQQ — −3× daily QQQ; falls when the market rises",
+    "BTC-USD": "Bitcoin price in USD; studied but never traded; trades 7 days a week, unlike the rest"
+  };
+  HEADS = [
+    ["Asset", "hover any name for what the fund is"],
+    "Labels",
+    ["Ret/yr", "annualized return over the training window"],
+    ["Vol", "annualized volatility (std-dev of daily returns)"],
+    ["Max DD", "max drawdown, biggest peak-to-trough fall"],
+    ["Up days", "share of days the close is above its 200-day line"],
+    ["Trend gap", "annualized return on uptrend days minus annualized return on downtrend days"],
+    ["Mkt down", "annualized return on the market (SPY) downtrend days"],
+    ["Corr", "daily-return correlation with SPY"],
+    ["Calm", "average size of a daily move on calm days"],
+    ["Wild", "average size of a daily move on wild days (market's volatile days)"],
+    ["KG exc/n", "KEEPS GOING: excess 20-day return vs all 20-day windows / event count (needs \u22656 events)"],
+    ["SB exc/n", "SNAPS BACK: excess 5-day return vs all 5-day windows / event count (needs \u226512 events)"],
+    ["SB\u2032 exc/n", "SNAPS BACK measured below the 200-day line instead of above it; same 5-day test / events"],
+    ["Holds", "HOLDS UP: beats SGOV cash on market down days AND correlation with SPY below 0.5"],
+    ["Line", "hover the circle for a one-line summary of this asset's behavior"]
+  ];
+  var html = '<table class="settings asset-table"><thead><tr>';
+  HEADS.forEach(function (h) {
+    var label = Array.isArray(h) ? h[0] : h, tip = Array.isArray(h) ? h[1] : null;
+    var name = (label === "Asset" || label === "Line") ? null : tip;
+    html += name ? '<th data-tip="' + name.replace(/"/g, "&quot;") + '">' + label + '</th>'
+                : '<th>' + label + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  order.forEach(function (g) {
+    html += '<tr><td colspan="16" class="grp">' + g + '</td></tr>';
+    GROUPS[g].forEach(function (t) {
+      var r = byTicker[t]; if (!r) return;
+      var nameTip = NAMES[t] ? (NAMES[t].replace(/"/g, "&quot;") + '</p>') : "";
+      html += '<tr>'
+        + '<td><span class="tick" data-tip="' + (NAMES[t] || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '">' + '<strong class="accent-teal">' + t + '</strong></span></td>'
+        + '<td style="white-space:normal;min-width:150px">' + tag("keeps going", r.keeps_going) + tag("snaps back", r.snaps_back) + tag("holds up", r.holds_up) + '</td>'
+        + '<td>' + pct(r.ann_return) + '</td>'
+        + '<td>' + pct(r.volatility) + '</td>'
+        + '<td>' + pct(r.max_drawdown) + '</td>'
+        + '<td>' + pct(r.share_uptrend_days) + '</td>'
+        + '<td>' + pct(r.trend_gap, 3) + '</td>'
+        + '<td>' + pct(r.ann_return_when_market_falls) + '</td>'
+        + '<td>' + num(r.corr_with_market, 2) + '</td>'
+        + '<td>' + pct(r.avg_abs_move_calm_days) + '</td>'
+        + '<td>' + pct(r.avg_abs_move_wild_days) + '</td>'
+        + '<td>' + pct(r.keeps_going_excess, 3) + ' / ' + r.keeps_going_events + '</td>'
+        + '<td>' + pct(r.snaps_back_excess, 3) + ' / ' + r.snaps_back_events + '</td>'
+        + '<td>' + pct(r.snaps_back_below_line_excess, 3) + ' / ' + r.snaps_back_below_line_events + '</td>'
+        + '<td>' + (r.holds_up ? '<span class="accent-teal">yes</span>' : '<span style="opacity:.4">no</span>') + '</td>'
+        + '<td><span class="line-ico" data-tip="' + r.plain.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + '">i</span></td>'
+        + '</tr>';
+    });
+  });
+  html += '</tbody></table>';
+
+  // keep tooltips on screen: pop upward for anything near the bottom of the page
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tip]'), function (el) {
+    if (el.getBoundingClientRect().bottom > window.innerHeight - 90) el.classList.add('tip-above');
+  });
+  html += '<p style="margin:6px 0 0;font-size:.75rem;color:rgba(17,17,17,.5)" class="legend">';
+  html += 'KG = keeps going, SB = snaps back, SB&rsquo; = snaps back below the line, exc = excess return vs all windows, n = events, Mkt down = return on market&rsquo;s downtrend days, Up days = share of days above the 200-day line</p>';
+  document.getElementById("asset-table").innerHTML = html;
+})();
+</script>

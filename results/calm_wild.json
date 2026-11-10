@@ -1,0 +1,88 @@
+{
+ "training_window": [
+  "2022-01-03",
+  "2024-12-31"
+ ],
+ "rows": [
+  {
+   "ticker": "SPY",
+   "group": "Stock indices",
+   "calm_pct": 0.599,
+   "wild_pct": 1.041,
+   "n_calm": 390,
+   "n_wild": 363
+  },
+  {
+   "ticker": "QQQ",
+   "group": "Stock indices",
+   "calm_pct": 0.839,
+   "wild_pct": 1.433,
+   "n_calm": 395,
+   "n_wild": 358
+  },
+  {
+   "ticker": "IWM",
+   "group": "Stock indices",
+   "calm_pct": 0.924,
+   "wild_pct": 1.357,
+   "n_calm": 373,
+   "n_wild": 380
+  },
+  {
+   "ticker": "DIA",
+   "group": "Stock indices",
+   "calm_pct": 0.554,
+   "wild_pct": 0.817,
+   "n_calm": 382,
+   "n_wild": 371
+  },
+  {
+   "ticker": "TLT",
+   "group": "Bonds",
+   "calm_pct": 0.744,
+   "wild_pct": 1.056,
+   "n_calm": 372,
+   "n_wild": 381
+  },
+  {
+   "ticker": "IEF",
+   "group": "Bonds",
+   "calm_pct": 0.377,
+   "wild_pct": 0.514,
+   "n_calm": 385,
+   "n_wild": 368
+  },
+  {
+   "ticker": "SHY",
+   "group": "Bonds",
+   "calm_pct": 0.087,
+   "wild_pct": 0.127,
+   "n_calm": 377,
+   "n_wild": 376
+  },
+  {
+   "ticker": "SGOV",
+   "group": "Cash",
+   "calm_pct": 0.016,
+   "wild_pct": 0.017,
+   "n_calm": 289,
+   "n_wild": 464
+  },
+  {
+   "ticker": "GLD",
+   "group": "Metals",
+   "calm_pct": 0.567,
+   "wild_pct": 0.831,
+   "n_calm": 366,
+   "n_wild": 387
+  },
+  {
+   "ticker": "SLV",
+   "group": "Metals",
+   "calm_pct": 1.1,
+   "wild_pct": 1.529,
+   "n_calm": 308,
+   "n_wild": 445
+  }
+ ]
+}

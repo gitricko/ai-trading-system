@@ -1,0 +1,97 @@
+<h2>Calm vs Wild</h2>
+<p class="sub" id="cw-sub">Loading&hellip;</p>
+
+<div id="cw-chart" class="cw-wrap"></div>
+<div class="cw-legend">
+  <span class="li"><i class="sw calm"></i>calm</span>
+  <span class="li"><i class="sw wild"></i>Wild</span>
+  <span class="sep">indices&nbsp;&middot;&nbsp;bonds&nbsp;&middot;&nbsp;cash&nbsp;&middot;&nbsp;metals</span>
+</div>
+
+<script>
+(function () {
+  var D = {{CALM_WILD}};
+  var tw = D.training_window;
+  document.getElementById("cw-sub").innerHTML =
+    "Average size of a daily move (close to close) on <b>calm</b> days vs <b>Wild</b> days &middot; training window "
+    + tw[0] + " \u2192 " + tw[1]
+    + ". A <b>Wild</b> day is one whose 20-day volatility is above its own median over the previous 252 days. "
+    + "Hover either bar for both numbers.";
+
+  var order = ["SPY", "QQQ", "IWM", "DIA", "TLT", "IEF", "SHY", "SGOV", "GLD", "SLV"];
+  var rows = D.rows.filter(function (r) { return order.indexOf(r.ticker) !== -1; });
+  rows.sort(function (a, b) { return order.indexOf(a.ticker) - order.indexOf(b.ticker); });
+
+  var cats = [], calmY = [], wildY = [];
+  rows.forEach(function (r) {
+    cats.push(r.ticker);
+    calmY.push(r.calm_pct); wildY.push(r.wild_pct);
+  });
+  var top = Math.max.apply(null, wildY.concat(calmY)) * 1.12;
+
+  // one shared hover text: "SPY  calm 0.60%  wild 1.04%   (390 / 363 days)"
+  function hoverText(i) {
+    var r = rows[i];
+    function p(v) { return v == null ? "–" : v.toFixed(2) + "%"; }
+    return [
+      "<b>" + cats[i] + "</b>",
+      "calm:  " + p(r.calm_pct),
+      "Wild:  " + p(r.wild_pct)
+    ].join("<br>");
+  }
+  var hoverArr = cats.map(function (t, i) { return hoverText(i); });
+
+  var traces = [
+    {
+      type: "bar", name: "calm", x: cats, y: calmY,
+      marker: { color: "rgba(15,118,110,0.8)" },
+      hoverinfo: "text", text: hoverArr, textposition: "none",
+      hoverlabel: { align: "center" }
+    },
+    {
+      type: "bar", name: "wild", x: cats, y: wildY,
+      marker: { color: "rgba(161,98,7,0.8)" },
+      hoverinfo: "text", text: hoverArr, textposition: "none",
+      hoverlabel: { align: "center" }
+    }
+  ];
+
+  var layout = {
+    margin: { l: 58, r: 18, t: 28, b: 58 },
+    height: 420,
+    barmode: "group",
+    barwidth: 0.28,
+    bargap: 0.55,
+    bargroupgap: 0.08,
+    showlegend: false,
+    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 13 },
+    yaxis: {
+      zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
+      range: [0, top]
+    },
+    xaxis: {
+      showgrid: false, tickangle: 0, font: { size: 13 },
+      ticks: "outside", ticklen: 5
+    },
+    // dotted dividers: after indices (3.5), after bonds (6.5), after cash SGOV (7.5)
+    shapes: [
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 3.5, x1: 3.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 6.5, x1: 6.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      },
+      {
+        type: "line", xref: "x", yref: "paper",
+        x0: 7.5, x1: 7.5, y0: 0, y1: 1,
+        line: { color: "rgba(30,58,95,0.30)", width: 1, dash: "dot" }
+      }
+    ]
+  };
+  Plotly.newPlot("cw-chart", traces, layout, { responsive: true, displayModeBar: 'hover' });
+})();
+</script>
