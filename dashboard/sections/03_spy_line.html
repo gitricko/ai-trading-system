@@ -90,7 +90,7 @@
   var w = el.clientWidth || el.parentElement.clientWidth || 1100;
   layout.width = w;
   el.style.width =  "100%";
-  Plotly.newPlot("spy-chart", traces, layout, { responsive: true, displayModeBar: false });
+  Plotly.newPlot("spy-chart", traces, layout, { responsive: true, displayModeBar: 'hover' });
 
   window.addEventListener("resize", function () {
     var nw = document.getElementById("spy-chart").clientWidth;
