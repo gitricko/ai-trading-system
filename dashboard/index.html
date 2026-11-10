@@ -7567,7 +7567,190 @@ body.presenting #stage { display: block; }
 })();
 </script>
   </section>
-  <footer class="colophon">built 2026-11-10 00:13:38 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <section class="panel" id="panel-05">
+    <section id="same-dip">
+  <h2>Same Dip</h2>
+  <p class="sub">
+    RSI(2) below 10: the average next-5-day return, minus the window&#39;s average, split by
+    whether the price was <b>above</b> or <b>below</b> its 200-day line. Training window
+    only.
+    <span class="leg">
+      <span class="li"><i class="sw above"></i>above the line</span>
+      <span class="li"><i class="sw below"></i>below the line</span>
+    </span>
+  </p>
+
+  <div id="dip-chart" class="cw-chart" role="img" aria-label="Bar chart of the average 5-day move after an RSI(2) drop below 10, above vs below the 200-day line."></div>
+
+  <script>
+  var D = {
+ "training_window": [
+  "2022-01-03",
+  "2024-12-31"
+ ],
+ "rule": "RSI(2) below 10: average next-5-bar return minus the window's average, above vs below the 200-day line",
+ "rows": [
+  {
+   "ticker": "SPY",
+   "group": "Stock indices",
+   "n_events": 89,
+   "above_pct": 0.202,
+   "above_n": 47,
+   "below_pct": 1.046,
+   "below_n": 42
+  },
+  {
+   "ticker": "QQQ",
+   "group": "Stock indices",
+   "n_events": 83,
+   "above_pct": 0.227,
+   "above_n": 42,
+   "below_pct": 0.343,
+   "below_n": 41
+  },
+  {
+   "ticker": "IWM",
+   "group": "Stock indices",
+   "n_events": 85,
+   "above_pct": 0.414,
+   "above_n": 34,
+   "below_pct": 0.298,
+   "below_n": 51
+  },
+  {
+   "ticker": "DIA",
+   "group": "Stock indices",
+   "n_events": 92,
+   "above_pct": 0.046,
+   "above_n": 60,
+   "below_pct": -0.401,
+   "below_n": 32
+  },
+  {
+   "ticker": "TLT",
+   "group": "Bonds",
+   "n_events": 103,
+   "above_pct": 0.341,
+   "above_n": 18,
+   "below_pct": 0.175,
+   "below_n": 85
+  },
+  {
+   "ticker": "IEF",
+   "group": "Bonds",
+   "n_events": 105,
+   "above_pct": -0.044,
+   "above_n": 30,
+   "below_pct": 0.067,
+   "below_n": 75
+  },
+  {
+   "ticker": "SHY",
+   "group": "Bonds",
+   "n_events": 78,
+   "above_pct": 0.068,
+   "above_n": 27,
+   "below_pct": -0.088,
+   "below_n": 51
+  },
+  {
+   "ticker": "GLD",
+   "group": "Metals",
+   "n_events": 85,
+   "above_pct": 0.296,
+   "above_n": 46,
+   "below_pct": -0.41,
+   "below_n": 39
+  },
+  {
+   "ticker": "SLV",
+   "group": "Metals",
+   "n_events": 111,
+   "above_pct": -0.537,
+   "above_n": 41,
+   "below_pct": 0.541,
+   "below_n": 70
+  }
+ ]
+};
+  (function () {
+    const data = D || { rows: [] };
+    const el = document.getElementById("dip-chart");
+    if (!(data.rows && data.rows.length)) { el.innerHTML = "<p class='empty'>No same-dip results yet.</p>"; return; }
+
+    const rows = data.rows;
+    const cats = rows.map(r => r.ticker);
+    const aboveY = rows.map(r => r.above_pct);
+    const belowY = rows.map(r => r.below_pct);
+    const top = Math.max(...aboveY.map(v => v == null ? 0 : v), ...belowY.map(v => v == null ? 0 : v), 0.1) * 1.15;
+    const bot = Math.min(...aboveY.map(v => v == null ? 0 : v), ...belowY.map(v => v == null ? 0 : v), -0.1) * 1.25;
+
+    const ABOVE = "rgba(15,118,110,0.85)";   // teal - above the line
+    const BELOW = "rgba(161,98,7,0.85)";     // bronze - below the line
+
+    function hoverText(i) {
+      const r = rows[i];
+      function p(v) { return v == null ? "\u2013" : (v > 0 ? "+" : "") + v.toFixed(2) + "%"; }
+      return [
+        "<b>" + cats[i] + "</b>",
+        "above the line:  " + p(r.above_pct) + "  (" + r.above_n + " dips)",
+        "below the line:  " + p(r.below_pct) + "  (" + r.below_n + " dips)"
+      ].join("<br>");
+    }
+    const hoverArr = cats.map((t, i) => hoverText(i));
+
+    const traces = [
+      {
+        type: "bar", name: "above", x: cats, y: aboveY,
+        marker: { color: ABOVE },
+        hoverinfo: "text", text: hoverArr, textposition: "none", barwidth: 0.28
+      },
+      {
+        type: "bar", name: "below", x: cats, y: belowY,
+        marker: { color: BELOW },
+        hoverinfo: "text", text: hoverArr, textposition: "none", barwidth: 0.28
+      }
+    ];
+
+    const groups = ["Stock indices", "Bonds", "Metals"];
+    const boundaries = [];
+    let start = 0;
+    groups.forEach((g) => {
+      const n = rows.filter(r => r.group === g).length;
+      start += n;
+      if (start < cats.length) boundaries.push(start - 0.5);
+    });
+    const shapes = boundaries.map(b => ({
+      type: "line", xref: "x", yref: "paper",
+      x0: b, x1: b, y0: 0.03, y1: 0.97,
+      line: { color: "rgba(17,17,17,0.4)", width: 1.25, dash: "dot" }
+    }));
+
+    Plotly.newPlot(el, traces, {
+      bargap: 0.55, bargroupgap: 0.08,
+      shapes,
+      margin: { l: 56, r: 14, t: 14, b: 42 },
+      height: 300,
+      showlegend: false, hovermode: "closest",
+      xaxis: { showgrid: false, tickfont: { size: 13, weight: 600 } },
+      yaxis: {
+        zeroline: true, zerolinecolor: "rgba(17,17,17,0.25)",
+        range: [bot, top]
+      },
+      font: { family: "inherit" }
+    });
+  })();
+  </script>
+</section>
+<style>
+/* same-dip legend swatches */
+#same-dip .sub .leg { margin-left: 10px; }
+#same-dip .sub .li { margin-bottom: 0; margin-left: 14px; }
+#same-dip .sw.above { width: 11px; height: 11px; background: rgba(15,118,110,0.85); display: inline-block; border-radius: 2px; margin-right: 5px; }
+#same-dip .sw.below { width: 11px; height: 11px; background: rgba(161,98,7,0.85); display: inline-block; border-radius: 2px; margin-right: 5px; }
+</style>
+  </section>
+  <footer class="colophon">built 2026-11-10 00:46:03 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>

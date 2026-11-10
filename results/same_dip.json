@@ -1,0 +1,90 @@
+{
+ "training_window": [
+  "2022-01-03",
+  "2024-12-31"
+ ],
+ "rule": "RSI(2) below 10: average next-5-bar return minus the window's average, above vs below the 200-day line",
+ "rows": [
+  {
+   "ticker": "SPY",
+   "group": "Stock indices",
+   "n_events": 89,
+   "above_pct": 0.202,
+   "above_n": 47,
+   "below_pct": 1.046,
+   "below_n": 42
+  },
+  {
+   "ticker": "QQQ",
+   "group": "Stock indices",
+   "n_events": 83,
+   "above_pct": 0.227,
+   "above_n": 42,
+   "below_pct": 0.343,
+   "below_n": 41
+  },
+  {
+   "ticker": "IWM",
+   "group": "Stock indices",
+   "n_events": 85,
+   "above_pct": 0.414,
+   "above_n": 34,
+   "below_pct": 0.298,
+   "below_n": 51
+  },
+  {
+   "ticker": "DIA",
+   "group": "Stock indices",
+   "n_events": 92,
+   "above_pct": 0.046,
+   "above_n": 60,
+   "below_pct": -0.401,
+   "below_n": 32
+  },
+  {
+   "ticker": "TLT",
+   "group": "Bonds",
+   "n_events": 103,
+   "above_pct": 0.341,
+   "above_n": 18,
+   "below_pct": 0.175,
+   "below_n": 85
+  },
+  {
+   "ticker": "IEF",
+   "group": "Bonds",
+   "n_events": 105,
+   "above_pct": -0.044,
+   "above_n": 30,
+   "below_pct": 0.067,
+   "below_n": 75
+  },
+  {
+   "ticker": "SHY",
+   "group": "Bonds",
+   "n_events": 78,
+   "above_pct": 0.068,
+   "above_n": 27,
+   "below_pct": -0.088,
+   "below_n": 51
+  },
+  {
+   "ticker": "GLD",
+   "group": "Metals",
+   "n_events": 85,
+   "above_pct": 0.296,
+   "above_n": 46,
+   "below_pct": -0.41,
+   "below_n": 39
+  },
+  {
+   "ticker": "SLV",
+   "group": "Metals",
+   "n_events": 111,
+   "above_pct": -0.537,
+   "above_n": 41,
+   "below_pct": 0.541,
+   "below_n": 70
+  }
+ ]
+}
