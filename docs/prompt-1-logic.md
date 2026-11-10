@@ -38,14 +38,23 @@ Save:
 - `results/asset_profiles.csv`
 - `reports/asset_study.md` with the plain lines grouped by label.
 - `results/spy_line.json` with the market ticker's daily close, its line, and a flag for each day on whether it's an uptrend or downtrend day, plus the training window and how many training days are downtrend days.
+- `results/calm_wild.json` with, for each stock index, bond and metal ticker: the average size of a daily move on calm days and on wild days (as percentages), how many calm days and how many wild days there are, and the training window.
 
 ### Dashboard section `01_assets`
 
-A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers, and a correlation heat map. Show percentages as percentages (not bare decimals), keep the table columns short with a hover definition on each header, and show each ticker's name with a hover tooltip explaining what the fund is.
+A table of every ticker grouped by type (like stock indices, sectors, bonds, cash, metals, commodities and crypto) with its labels as tags and its key numbers. Show percentages as percentages (not bare decimals), keep the table columns short with a hover definition on each header, and show each ticker's name with a hover tooltip explaining what the fund is.
 
-### Dashboard section `02_market`
+### Dashboard section `02_correlation`
+
+A separate section with the correlation heat map of daily returns for the training window, filling the width of the section so there's no gap on either side. Hovering a cell shows the pair and its correlation.
+
+### Dashboard section `03_spy_line`
 
 A chart of the market ticker and its line. Mark the training window and its downtrend days. Hovering the chart shows the date, the close, the line value and whether that day is an uptrend or downtrend day. Keep the legend close to the x-axis with no big gap below the chart.
+
+### Dashboard section `04_calm_wild`
+
+A grouped bar chart for the stock index, bond and metal tickers, in training window only: two bars per ticker, one for calm days and one for wild days, showing the average size of the daily move, with a dotted divider between the three groups and thin bars with clear gaps. A wild day is one whose 20-day volatility is above its own median over the previous 252 days. Hovering a bar shows only the ticker, its calm value and its wild value, with nothing drawn on top of the bars.
 
 ![prompt 1, part 1](images/1-1-logic.png)
 ![prompt 1, part 2](images/1-2-logic.png)
