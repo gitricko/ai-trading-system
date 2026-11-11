@@ -21,6 +21,7 @@ SPY_LINE_JSON = ROOT / "results" / "spy_line.json"
 CALM_WILD_JSON = ROOT / "results" / "calm_wild.json"
 SAME_DIP_JSON = ROOT / "results" / "same_dip.json"
 ENGINE_CHECK_JSON = ROOT / "results" / "engine_check.json"
+CORE_JSON = ROOT / "results" / "core.json"
 
 GROUPS_JSON = {
     "Stock indices": ["SPY", "QQQ", "IWM", "DIA"],
@@ -386,6 +387,11 @@ def build(output: Path | None = None) -> Path:
             body = body.replace(
                 "{{ENGINE_CHECK}}",
                 ENGINE_CHECK_JSON.read_text(encoding="utf-8").strip(),
+            )
+        if "{{CORE}}" in body and CORE_JSON.exists():
+            body = body.replace(
+                "{{CORE}}",
+                CORE_JSON.read_text(encoding="utf-8").strip(),
             )
         if "Plotly.newPlot" in body:
             needs_plotly = True
