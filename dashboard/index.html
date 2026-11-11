@@ -8044,21 +8044,21 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
 
   <div class="core-card wide">
     <h3>The core on each window — separate runs (each starts flat at $100k)</h3>
-    <p class="runs-note">House rule: each window is its own run from $100k, not one continuous account.
-    So the two runs are shown side-by-side with their own baseline and their own drawdown — nothing is
-    carried across the boundary, which is exactly why a single joined curve would invent a fake drawdown.</p>
+    <p class="runs-note">House rule: each window is its own run from $100k, not one continuous account. So the runs are stacked below each other with their own baseline and their own drawdown — nothing is carried across the boundary, which is exactly why a single joined curve would invent a fake drawdown.</p>
     <div class="runs">
       <div class="run">
         <div class="run-head">training window <em class="muted">(in-sample)</em></div>
         <div id="tr-eq" class="eq-pane"></div>
         <div id="tr-dd" class="dd-pane"></div>
         <div id="tr-strip" class="strip-pane"></div>
+        <div class="strip-legend">holding: <span class="sw eng"></span> QQQ (engine) &nbsp; <span class="sw saf"></span> GLD (safe)</div>
       </div>
       <div class="run lock">
         <div class="run-head">locked test <em class="muted">(out-of-sample)</em></div>
         <div id="lk-eq" class="eq-pane"></div>
         <div id="lk-dd" class="dd-pane"></div>
         <div id="lk-strip" class="strip-pane"></div>
+        <div class="strip-legend">holding: <span class="sw eng"></span> QQQ (engine) &nbsp; <span class="sw saf"></span> GLD (safe)</div>
       </div>
     </div>
   </div>
@@ -18352,14 +18352,18 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
     Plotly.newPlot(idPrefix + "-strip",
       [
         { name: EN + " (engine)", x: heldArr, y: engineY,
-          type: "scatter", mode: "lines", line: { color: "#0f766e", width: 8, shape: "hv" }, connectgaps: false, showlegend: true },
+          type: "scatter", mode: "lines", line: { color: "#0f766e", width: 8, shape: "hv" },
+          connectgaps: false, showlegend: false },
         { name: SA + " (safe)", x: heldArr, y: safeY,
-          type: "scatter", mode: "lines", line: { color: "#b95518", width: 8, shape: "hv" }, connectgaps: false, showlegend: true },
+          type: "scatter", mode: "lines", line: { color: "#b95518", width: 8, shape: "hv" },
+          connectgaps: false, showlegend: false },
       ],
       { width: W, height: 44, margin: { l: 55, r: 15, t: 8, b: 18 },
         xaxis: { showticklabels: false, showgrid: false },
         yaxis: { visible: false, range: [0, 40] },
-        legend: { orientation: "h", y: 1.8, x: 0.15, font: { size: 10 } },
+        // Legend is a plain-HTML strip-legend below the plot, so it never
+        // overlaps the held-strip lines (the Plotly legend used to sit in
+        // the top margin at y:1.8 and cover the first few step-segments).
         dragmode: false, font: baseFont },
       { displayModeBar: false, scrollzoom: false });
   }
@@ -18419,12 +18423,16 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
   .muted { color: #64748b; font-size: 0.85em; font-style: normal; }
   .runs-note { color: #475569; font-size: 0.85rem; line-height: 1.45; margin: -4px 0 10px; }
   .nbr-wrap { width: 100%; height: 340px; }
-  .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .runs { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 8px; }
   .run { border: 1px solid rgba(15,118,110,0.25); border-radius: 6px; padding: 8px 10px; }
   .run.lock { border-color: rgba(185,85,32,0.45); background: rgba(185,85,32,0.03); }
   .run-head { font-size: 0.85rem; font-weight: 650; color: var(--navy); margin-bottom: 6px; }
   .run.lock .run-head { color: #b95518; }
   .run .eq-pane, .run .dd-pane, .run .strip-pane { width: 100%; }
+  .strip-legend { font-size: 0.8rem; color: #334155; margin-top: 6px; padding-left: 4px; }
+  .strip-legend .sw { display: inline-block; width: 14px; height: 8px; margin: 0 4px 0 2px; vertical-align: middle; border-radius: 1px; }
+  .strip-legend .sw.eng { background: #0f766e; }
+  .strip-legend .sw.saf { background: #b95518; }
   .verdict { display: grid; gap: 8px; font-size: 0.92rem; background: #fff; }
   .verdict .lbl { display: inline-block; min-width: 200px; color: #334155; }
   .badge { font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; border: 1px solid; letter-spacing: 0.04em; margin-right: 6px; }
@@ -18434,12 +18442,11 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
   @media (max-width: 820px) {
     .core-grid { grid-template-columns: 1fr; }
     .core-card.wide { grid-column: span 1; }
-    .runs { grid-template-columns: 1fr; }
     .verdict .lbl { min-width: 150px; }
   }
 </style>
   </section>
-  <footer class="colophon">built 2026-11-11 13:08:26 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-11 13:22:58 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
