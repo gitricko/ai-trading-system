@@ -8043,11 +8043,23 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
   </div>
 
   <div class="core-card wide">
-    <h3>The core on both windows — one curve, drawdown underneath, locked test shaded, held strip below</h3>
-    <div class="equi-wrap">
-      <div id="eq-eq" class="eq-pane"></div>
-      <div id="eq-dd" class="dd-pane"></div>
-      <div id="eq-strip" class="strip-pane"></div>
+    <h3>The core on each window — separate runs (each starts flat at $100k)</h3>
+    <p class="runs-note">House rule: each window is its own run from $100k, not one continuous account.
+    So the two runs are shown side-by-side with their own baseline and their own drawdown — nothing is
+    carried across the boundary, which is exactly why a single joined curve would invent a fake drawdown.</p>
+    <div class="runs">
+      <div class="run">
+        <div class="run-head">training window <em class="muted">(in-sample)</em></div>
+        <div id="tr-eq" class="eq-pane"></div>
+        <div id="tr-dd" class="dd-pane"></div>
+        <div id="tr-strip" class="strip-pane"></div>
+      </div>
+      <div class="run lock">
+        <div class="run-head">locked test <em class="muted">(out-of-sample)</em></div>
+        <div id="lk-eq" class="eq-pane"></div>
+        <div id="lk-dd" class="dd-pane"></div>
+        <div id="lk-strip" class="strip-pane"></div>
+      </div>
     </div>
   </div>
 
@@ -18249,28 +18261,25 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
 
   function pct(x) { return (x == null || !isFinite(x)) ? "—" : (100 * x).toFixed(1) + "%"; }
 
-  // Step 1 — engine table
-  var engRows = D.steps.step1_engine.candidates;
-  document.querySelector("#eng-tbl tbody").innerHTML = engRows.map(function (r) {
-    var chosen = r.selected;
-    return "<tr class='" + (chosen ? "chosen" : "") + "'><th>" + r.ticker +
-           "</th><td>" + pct(r.trend_gap) +
-           "</td><td class='flag'>" + (chosen ? "engine" : "") + "</td></tr>";
+  document.querySelector("#eng-tbl tbody").innerHTML = D.steps.step1_engine.candidates.map(function (r) {
+    return "<tr class='" + (r.selected ? "chosen" : "") + "'><th>" + r.ticker +
+           "</th><td>" + pct(r.trend_gap) + "</td><td class='flag'>" + (r.selected ? "engine" : "") + "</td></tr>";
   }).join("");
 
-  // Step 2 — safe table
-  var safeRows = D.steps.step2_safe.candidates;
-  document.querySelector("#safe-tbl tbody").innerHTML = safeRows.map(function (r) {
-    var chosen = r.selected;
-    return "<tr class='" + (chosen ? "chosen" : "") + "'><th>" + r.ticker +
-           "</th><td>" + pct(r.ann_return_on_downtrend) +
-           "</td><td>" + r.daily_corr_with_engine.toFixed(2) +
-             (r.is_cash ? " <em class='muted'>(cash)</em>" : "") +
-           "</td><td class='flag'>" + (chosen ? "safe" : (r.is_cash ? "cash" : (r.eligible ? "" : "ineligible"))) + "</td></tr>";
+  document.querySelector("#safe-tbl tbody").innerHTML = D.steps.step2_safe.candidates.map(function (r) {
+    return "<tr class='" + (r.selected ? "chosen" : "") + "'><th>" + r.ticker +
+           "</th><td>" + pct(r.ann_return_on_downtrend) + "</td>" +
+           "<td>" + r.daily_corr_with_engine.toFixed(2) + (r.is_cash ? " <em class='muted'>(cash)</em>" : "") + "</td>" +
+           "<td class='flag'>" + (r.selected ? "safe" : (r.is_cash ? "cash" : (r.eligible ? "" : "ineligible"))) + "</td></tr>";
   }).join("");
 
-  // Step 4 — neighbors grouped bar chart
+  // Shared plot settings (house style)
+  var FONT = { family: "Segoe UI, Helvetica, Arial, sans-serif" };
+
+  // --- Step 4 neighbors grouped bar chart (fixed width + resize reflow) ---
   var N = D.steps.step4_neighbors.neighbors;
+  var nbrHolder = document.getElementById("nbr-chart");
+  function nbrWidth() { var w = nbrHolder.clientWidth; return w || 800; }
   var cats = N.map(function (n) { return n.name.replace(/ /g, "\n"); });
   Plotly.newPlot("nbr-chart", [
     { name: "training", x: cats, y: N.map(function (n) { return 100 * n.training.total_return; }),
@@ -18282,85 +18291,104 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
       customdata: N.map(function (n) { return "trades " + n.locked_test.trades; }),
       hovertemplate: "<b>%{y:.1f}%</b><br>%{customdata}<extra>%{fullData.name}</extra>" },
   ], {
+    width: nbrWidth(), height: 340,
     margin: { l: 50, r: 15, t: 30, b: 120 },
     barmode: "group",
     yaxis: { title: "total return %", gridcolor: "rgba(15,118,110,0.15)" },
     xaxis: { tickangle: -35, font: { size: 11 } },
     legend: { orientation: "h", y: 1.12, x: 0 },
-  }, { responsive: true, displayModeBar: false });
+    font: FONT,
+  }, { displayModeBar: false });
 
-  // Step 3 — one equity curve over both windows + drawdown + held strip
+  // --- The core, one panel PER WINDOW ------------------------------
+  // Each window is its own independent run from $100k (house rule). So each
+  // panel plots: equity (top) with its own baseline at $100k; drawdown
+  // (middle) off THAT run's own peak; held strip (bottom). Nothing carries
+  // across the two panels.
   var s3 = D.steps.step3_core_switch;
-  var xs = s3.equity_training.concat(s3.equity_locked).map(function (p) { return p[0]; });
-  var ys = s3.equity_training.concat(s3.equity_locked).map(function (p) { return p[1]; });
-  var ddYs = [];
-  var peak = -Infinity;
-  for (var i = 0; i < ys.length; i++) {
-    if (ys[i] > peak) peak = ys[i];
-    ddYs.push(100 * (ys[i] / peak - 1));
+
+  function drawdown(arr) {
+    var out = new Array(arr.length), peak = -Infinity;
+    for (var i = 0; i < arr.length; i++) { var v = arr[i][1]; if (v > peak) peak = v; out[i] = 100 * (v / peak - 1); }
+    return out;
   }
-  var lockedX0 = s3.equity_locked[0][0];
-  var shapes = [{ type: "rect", x0: lockedX0, x1: D.window.locked_test[1],
-                 yref: "paper", y0: 0, y1: 1,
-                 fillcolor: "rgba(185,85,32,0.10)", line: { width: 0 } }];
-  var annots = [{ x: lockedX0, y: 1.0, xref: "x", yref: "paper",
-                 text: " locked test ", showarrow: false,
-                 font: { size: 12, color: "#b95518" }, xanchor: "left" }];
 
-  var base = { margin: { l: 65, r: 25, t: 5, b: 25 },
-              xaxis: { tickfont: { size: 10 }, showgrid: false },
-              dragmode: false };
-  Plotly.newPlot("eq-eq",
-    [{ x: xs, y: ys, type: "scatter", mode: "lines",
-       line: { color: "#0f766e", width: 1.7 },
-       hovertemplate: "%{x}<br>$%{y:,.0f}<extra></extra>" }],
-    { margin: base.margin,
-      xaxis: base.xaxis,
-      yaxis: { title: { text: "equity ($)" }, gridcolor: "rgba(15,118,110,0.15)" },
-      shapes: shapes, annotations: annots,
-      hovermode: "x", dragmode: false },
-    { responsive: true, displayModeBar: false, scrollzoom: false });
+  function renderRun(idPrefix, eq, held) {
+    var eqEl = document.getElementById(idPrefix + "-eq");
+    var ddEl = document.getElementById(idPrefix + "-dd");
+    var stEl = document.getElementById(idPrefix + "-strip");
+    var W = eqEl.clientWidth || 500;
+    var xs = eq.map(function (p) { return p[0]; });
+    var ys = eq.map(function (p) { return p[1]; });
+    var dd = drawdown(eq);
+    var heldArr = held.map(function (p) { return p[0]; });
+    var engineY = held.map(function (p) { return p[1] === "engine" ? 20 : null; });
+    var safeY = held.map(function (p) { return p[1] === "safe" ? 20 : null; });
+    var baseX = { tickfont: { size: 10 }, showgrid: false };
+    var baseFont = FONT;
 
-  Plotly.newPlot("eq-dd",
-    [{ x: xs, y: ddYs, type: "scatter", mode: "lines",
-       line: { color: "#b95518", width: 1.1 },
-       fill: "tozeroy", fillcolor: "rgba(185,85,32,0.20)",
-       hovertemplate: "%{x}<br>%{y:.1f}%<extra></extra>" }],
-    { margin: { l: 65, r: 25, t: 5, b: 25 },
-      xaxis: { tickfont: { size: 10 }, showgrid: false, showticklabels: false },
-      yaxis: { title: { text: "drawdown %" }, gridcolor: "rgba(15,118,110,0.15)", tickformat: ".0f" },
-      shapes: shapes, hovermode: "x", dragmode: false },
-    { responsive: true, displayModeBar: false, scrollzoom: false });
+    Plotly.newPlot(idPrefix + "-eq",
+      [{ x: xs, y: ys, type: "scatter", mode: "lines",
+         line: { color: "#0f766e", width: 1.7 },
+         hovertemplate: "%{x}<br>$%{y:,.0f}<extra>equity</extra>" }],
+      { width: W, height: 240, margin: { l: 55, r: 15, t: 10, b: 25 },
+        xaxis: baseX,
+        yaxis: { title: { text: "equity ($)" }, gridcolor: "rgba(15,118,110,0.15)",
+                tickformat: "$.2s" },
+        hovermode: "x", dragmode: false, font: baseFont },
+      { displayModeBar: false, scrollzoom: false });
 
-  // Held strip: two thick step-lines, one per holding
-  var held = s3.held_training.concat(s3.held_locked);
-  var heldDates = held.map(function (p) { return p[0]; });
-  var engineY = held.map(function (p) { return p[1] === "engine" ? 20 : null; });
-  var safeY = held.map(function (p) { return p[1] === "safe" ? 20 : null; });
-  Plotly.newPlot("eq-strip", [
-    { name: EN + " (engine)", x: heldDates, y: engineY,
-      type: "scatter", mode: "lines", line: { color: "#0f766e", width: 10, shape: "hv" },
-      connectgaps: false, showlegend: true },
-    { name: SA + " (safe)", x: heldDates, y: safeY,
-      type: "scatter", mode: "lines", line: { color: "#b95518", width: 10, shape: "hv" },
-      connectgaps: false, showlegend: true },
-  ], {
-    margin: { l: 65, r: 25, t: 24, b: 20 },
-    xaxis: { showticklabels: false, showgrid: false },
-    yaxis: { visible: false, range: [0, 40] },
-    legend: { orientation: "h", y: 1.5, x: 0.4, font: { size: 11 } },
-    shapes: shapes, dragmode: false,
-  }, { responsive: true, displayModeBar: false, scrollzoom: false });
+    Plotly.newPlot(idPrefix + "-dd",
+      [{ x: xs, y: dd, type: "scatter", mode: "lines",
+         line: { color: "#b95518", width: 1.1 },
+         fill: "tozeroy", fillcolor: "rgba(185,85,32,0.20)",
+         hovertemplate: "%{x}<br>%{y:.1f}%<extra>drawdown</extra>" }],
+      { width: W, height: 110, margin: { l: 55, r: 15, t: 5, b: 25 },
+        xaxis: { tickfont: { size: 10 }, showgrid: false, showticklabels: false },
+        yaxis: { title: { text: "DD %" }, gridcolor: "rgba(15,118,110,0.15)", tickformat: ".0f" },
+        hovermode: "x", dragmode: false, font: baseFont },
+      { displayModeBar: false, scrollzoom: false });
+
+    Plotly.newPlot(idPrefix + "-strip",
+      [
+        { name: EN + " (engine)", x: heldArr, y: engineY,
+          type: "scatter", mode: "lines", line: { color: "#0f766e", width: 8, shape: "hv" }, connectgaps: false, showlegend: true },
+        { name: SA + " (safe)", x: heldArr, y: safeY,
+          type: "scatter", mode: "lines", line: { color: "#b95518", width: 8, shape: "hv" }, connectgaps: false, showlegend: true },
+      ],
+      { width: W, height: 44, margin: { l: 55, r: 15, t: 8, b: 18 },
+        xaxis: { showticklabels: false, showgrid: false },
+        yaxis: { visible: false, range: [0, 40] },
+        legend: { orientation: "h", y: 1.8, x: 0.15, font: { size: 10 } },
+        dragmode: false, font: baseFont },
+      { displayModeBar: false, scrollzoom: false });
+  }
+
+  renderRun("tr", s3.equity_training, s3.held_training);
+  renderRun("lk", s3.equity_locked, s3.held_locked);
+
+  // --- Fix the classic "first-render width" issue: measure and reflow ---
+  function relayoutAll() {
+    var w = nbrHolder.clientWidth || 800;
+    Plotly.relayout("nbr-chart", { width: w });
+    var wTr = document.getElementById("tr-eq").clientWidth || 500;
+    var wLk = document.getElementById("lk-eq").clientWidth || 500;
+    Plotly.relayout("tr-eq", { width: wTr });
+    Plotly.relayout("tr-dd", { width: wTr });
+    Plotly.relayout("tr-strip", { width: wTr });
+    Plotly.relayout("lk-eq", { width: wLk });
+    Plotly.relayout("lk-dd", { width: wLk });
+    Plotly.relayout("lk-strip", { width: wLk });
+  }
+  window.addEventListener("load", relayoutAll);
+  window.addEventListener("resize", relayoutAll);
+  setTimeout(relayoutAll, 0);
 
   // Verdict
-  function badge(pass) {
-    return "<span class='badge " + (pass ? "pass" : "fail") + "'>" + (pass ? "PASS" : "FAIL") + "</span>";
-  }
+  function badge(pass) { return "<span class='badge " + (pass ? "pass" : "fail") + "'>" + (pass ? "PASS" : "FAIL") + "</span>"; }
   var s4 = D.steps.step4_neighbors, s5 = D.steps.step5_locked_test, s6 = D.steps.step6_cost_check;
   var passN = s4.neighbors.filter(function (n) { return n.passes; }).length;
-  var savedTxt = D.all_steps_pass
-    ? (EN + " / " + SA + " / " + LN + "-day line")
-    : "not saved — see failed steps";
+  var savedTxt = D.all_steps_pass ? (EN + " / " + SA + " / " + LN + "-day line") : "not saved — see failed steps";
   document.getElementById("verdict").innerHTML =
     "<div><span class='lbl'>Step 4 · neighbors</span> " + badge(s4.all_pass) +
     "   <small>" + passN + " of " + s4.neighbors.length + " make money after costs, both windows</small></div>" +
@@ -18388,24 +18416,30 @@ look-ahead guard: 30 random days, seed 7 · cost 0.05% of the traded value on ev
   .core-tbl tr.chosen th { color: #0a4f4a; }
   .core-tbl td.flag { font-size: 0.78rem; color: #475569; font-weight: 600; }
   .core-tbl tr.chosen td.flag { color: #0a4f4a; }
-  .muted { color: #64748b; font-size: 0.8em; }
+  .muted { color: #64748b; font-size: 0.85em; font-style: normal; }
+  .runs-note { color: #475569; font-size: 0.85rem; line-height: 1.45; margin: -4px 0 10px; }
   .nbr-wrap { width: 100%; height: 340px; }
-  .equi-wrap { display: grid; grid-template-rows: 340px 140px 40px; gap: 4px; }
-  .eq-pane, .dd-pane, .strip-pane { width: 100%; }
+  .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .run { border: 1px solid rgba(15,118,110,0.25); border-radius: 6px; padding: 8px 10px; }
+  .run.lock { border-color: rgba(185,85,32,0.45); background: rgba(185,85,32,0.03); }
+  .run-head { font-size: 0.85rem; font-weight: 650; color: var(--navy); margin-bottom: 6px; }
+  .run.lock .run-head { color: #b95518; }
+  .run .eq-pane, .run .dd-pane, .run .strip-pane { width: 100%; }
   .verdict { display: grid; gap: 8px; font-size: 0.92rem; background: #fff; }
   .verdict .lbl { display: inline-block; min-width: 200px; color: #334155; }
   .badge { font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; border: 1px solid; letter-spacing: 0.04em; margin-right: 6px; }
   .badge.pass { color: #0f766e; border-color: #0f766e; background: rgba(15,118,110,0.08); }
   .badge.fail { color: #b91c1c; border-color: #b91c1c; background: rgba(185,28,28,0.08); }
   .verdict small { color: #64748b; }
-  @media (max-width: 720px) {
+  @media (max-width: 820px) {
     .core-grid { grid-template-columns: 1fr; }
     .core-card.wide { grid-column: span 1; }
+    .runs { grid-template-columns: 1fr; }
     .verdict .lbl { min-width: 150px; }
   }
 </style>
   </section>
-  <footer class="colophon">built 2026-11-11 10:29:08 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
+  <footer class="colophon">built 2026-11-11 13:08:26 UTC &middot; if this dashboard looks stale, check that this timestamp is fresh </footer>
   </div>
 
 <div id="stage" aria-hidden="true"><div class="stage-inner"></div><div class="stage-count"></div></div>
