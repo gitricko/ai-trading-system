@@ -251,6 +251,12 @@ def _run_neighbor(
         above = (eng > L.sma(eng, length)).reindex(bars.close.index).fillna(False)
 
     def sig(bars_b: B.Bars, day: int) -> str:
+        # ``day`` is the bar whose close just closed (the decision bar). The
+        # decision reads ``above.iloc[day]`` — i.e. the line state *as of that
+        # close* — exactly like TrendSwitch (whose docstring says the decision
+        # "uses data up to and including that day's close"). The backtester
+        # then fills the resulting switch at the NEXT bar's open, so the one-bar
+        # lag between decision and fill is handled by the engine, not here.
         return engine if bool(above.iloc[day]) else safe
 
     return B.backtest(bars, sig, cost=cost, starting_cash=B.STARTING_CASH, price_map=pm)
